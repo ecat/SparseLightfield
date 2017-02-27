@@ -14,24 +14,24 @@ function cs_reconstruction(lightFieldImage)
     %% applies mask to a light field single channel
     function Y = applyMasks(angularLightFields, measurement_masks)
         % add some asserts
-        Y = zeros(size(lightFieldImage.imageHeight, ...
-                lightFieldImage.imageWidth));
+        Y = zeros(lightFieldImage.imageHeight, ...
+                lightFieldImage.imageWidth, M);
 
-        for u = 1: lightFieldImage.angularLightFieldSize        
-            for v = 1: lightFieldImage.angularLightFieldSize
-                Y = Y + measurement_masks(v, u) .* ...
-                    angularLightFields(:, :, v, u);  
-            end
-        end            
+        for m = 1:M
+            for u = 1: lightFieldImage.angularLightFieldSize        
+                for v = 1: lightFieldImage.angularLightFieldSize
+                    Y(:, :, m) = Y(:, :, m) + measurement_masks(v, u, m) .* ...
+                        angularLightFields(:, :, v, u);  
+                end
+            end        
+        end
     end
     
     for c = 1
-            % apply masks to the raw data to simulate measurements
-        for m = 1:M
-            lightFieldImageSingleChannel = lightFieldImage.lightField(:, :, :, :, c);           
-            Y(:, :, m) = applyMasks(lightFieldImageSingleChannel, squeeze(masks(:, :, m)));
-        end
-        
+        % apply masks to the raw data to simulate measurements
+        lightFieldImageSingleChannel = lightFieldImage.lightField(:, :, :, :, c);           
+        Y = applyMasks(lightFieldImageSingleChannel, masks);
+
         % solve the reconstruction problem
         sigma = 0.1;    
         
@@ -53,19 +53,25 @@ function cs_reconstruction(lightFieldImage)
                 lightFieldImage.angularLightFieldSize lightFieldImage.angularLightFieldSize]);
             
             % apply ifft in the u and v axes
-            lightFieldSpatialDomain = ifft(ifft(w1, [], 3), 4);
+            lightFieldSpatialDomain = ifft(ifft(w1, [], 3), [], 4);
             
             % apply masks            
-            v = applyMasks(lightFieldSpatialDomain, masks);
+            y = applyMasks(lightFieldSpatialDomain, masks);
+            
+            % vectorize
+            v = vectorizeLightField(y);
             
         elseif(mode == 2)
             % apply masks adjoint operation, creates linear combination of
             % masks
-
-
+            w2 = reshape(w, [imageHeight imageWidth ...
+                lightFieldImage.angularLightFieldSize lightFieldImage.angularLightFieldSize]);
+            aa = reshape(w2(lightFieldImage.angularLightFieldSize*lightFieldImage.angularLightFieldSize, M))
             % apply sparse basis adjoint operation
             % fft2
+            lightFieldFourierDomain = fft(fft(w2, [],3), [], 4);
             %v = sum(repmat(reshape(w, [1 1 M]), ...
+            
             %    [angularViewResizeFactor, angularViewResizeFactor, 1]).*masks, 3);
         end
     end
