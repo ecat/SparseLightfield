@@ -6,11 +6,11 @@ addpath('spgl1-1.9')
 
 %% load image
 parameters.filename = 'flowers_plants_1_eslf.png';
-parameters.downsampledAngularLightFieldSize = 4;
+parameters.angularLightFieldSize = 4;
 
 lightFieldImage = LightFieldImage(parameters)
 
-imshow(lightFieldImage.getFFTRawImage())
+%imshow(lightFieldImage.getFFTRawImage())
 
 %% perform cs reconstruction
 cs_reconstruction(lightFieldImage);

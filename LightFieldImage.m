@@ -11,7 +11,7 @@ classdef LightFieldImage
         % default is 14 x 14, if we want to reduce the number of angular light field
         % views, we can specify a smaller number that copies only the
         % center angular views denoted by lightFieldSize
-        downsampledAngularLightFieldSize 
+        angularLightFieldSize 
         % resize each of the angular views, 2x makes the image half the
         % size in each dimension
         angularViewResizeFactor
@@ -23,7 +23,7 @@ classdef LightFieldImage
         % parameters is a that contains:
         % filename
         % (optional)
-        % downsampledAngularLightFieldSize
+        % angularLightFieldSize
         % angularViewResizeFactor
         function obj = LightFieldImage(params)    
             
@@ -32,11 +32,11 @@ classdef LightFieldImage
             obj.microlensSize = 14;
             
             % parse parameters
-            if(isfield(params, 'downsampledAngularLightFieldSize'))
-                assert( mod(params.downsampledAngularLightFieldSize, 2) == 0)
-                obj.downsampledAngularLightFieldSize = params.downsampledAngularLightFieldSize;                
+            if(isfield(params, 'angularLightFieldSize'))
+                assert( mod(params.angularLightFieldSize, 2) == 0)
+                obj.angularLightFieldSize = params.angularLightFieldSize;                
             else 
-                obj.downsampledAngularLightFieldSize = obj.microlensSize;                
+                obj.angularLightFieldSize = obj.microlensSize;                
             end
             
             if(isfield(params, 'angularViewResizeFactor'))
@@ -65,18 +65,18 @@ classdef LightFieldImage
             end
             
             % center crop to downsample the views            
-            if(obj.downsampledAngularLightFieldSize ~= obj.microlensSize || ...
+            if(obj.angularLightFieldSize ~= obj.microlensSize || ...
                     obj.angularViewResizeFactor ~= 1)
                 mImageHeight = round(mImageHeight/obj.angularViewResizeFactor);
                 mImageWidth = round(mImageWidth/obj.angularViewResizeFactor);
                 downsampledLightField = zeros(mImageHeight, mImageWidth, ...
-                    obj.downsampledAngularLightFieldSize, obj.downsampledAngularLightFieldSize, ...
+                    obj.angularLightFieldSize, obj.angularLightFieldSize, ...
                     3);
                 
-                for ky = 1:obj.downsampledAngularLightFieldSize
-                    for kx = 1:obj.downsampledAngularLightFieldSize
-                        offsetX = (obj.microlensSize -  obj.downsampledAngularLightFieldSize)/2;
-                        offsetY = (obj.microlensSize -  obj.downsampledAngularLightFieldSize)/2;                
+                for ky = 1:obj.angularLightFieldSize
+                    for kx = 1:obj.angularLightFieldSize
+                        offsetX = (obj.microlensSize -  obj.angularLightFieldSize)/2;
+                        offsetY = (obj.microlensSize -  obj.angularLightFieldSize)/2;                
                         originalImage = mLightField(:, :, ky + offsetY, kx + offsetX, :);
 
                         resizedImage = imresize(originalImage, [mImageHeight, mImageWidth], 'bilinear');
@@ -97,7 +97,7 @@ classdef LightFieldImage
         
         %% See lightfield from a certain perspective
         function outputImage = getImage(obj, v, u)
-            if( u > obj.downsampledAngularLightFieldSize || v > obj.downsampledAngularLightFieldSize)
+            if( u > obj.angularLightFieldSize || v > obj.angularLightFieldSize)
                 error('u or v exceeds bounds')
             end
             
@@ -109,11 +109,11 @@ classdef LightFieldImage
             width = obj.imageWidth;
             height = obj.imageHeight;
             
-           outputImage = zeros(height * obj.downsampledAngularLightFieldSize, ...
-               width * obj.downsampledAngularLightFieldSize, 3);
+           outputImage = zeros(height * obj.angularLightFieldSize, ...
+               width * obj.angularLightFieldSize, 3);
            
-           for ky = 1:obj.downsampledAngularLightFieldSize
-              for kx = 1:obj.downsampledAngularLightFieldSize
+           for ky = 1:obj.angularLightFieldSize
+              for kx = 1:obj.angularLightFieldSize
                     outputImage( (ky -1) * height + 1: ky * height, ...
                     (kx -1) * width + 1: kx * width, :) = obj.getImage(ky, kx);
               end
