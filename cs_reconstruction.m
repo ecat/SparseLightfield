@@ -10,33 +10,66 @@ function cs_reconstruction(lightFieldImage)
         lightFieldImage.angularLightFieldSize, M);
     % create array for our measurements
     Y = zeros(lightFieldImage.imageHeight, lightFieldImage.imageWidth , M);
-  
-    
-    for c = 1:3
-    
-        % apply masks to the raw data to simulate measurements
-        for m = 1:M
-            lightFieldImageSingleChannel = lightFieldImage.lightField(:, :, :, :, c);
-            lightFieldMeasurement = zeros(size(lightFieldImage.imageHeight, ...
+      
+    %% applies mask to a light field single channel
+    function Y = applyMasks(angularLightFields, measurement_masks)
+        % add some asserts
+        Y = zeros(size(lightFieldImage.imageHeight, ...
                 lightFieldImage.imageWidth));
 
-            for u = 1: lightFieldImage.angularLightFieldSize        
-                for v = 1: lightFieldImage.angularLightFieldSize
-                    lightFieldMeasurement = lightFieldMeasurement + masks(v, u, m) .* ...
-                        lightFieldImageSingleChannel(:, :, v, u);  
-                end
+        for u = 1: lightFieldImage.angularLightFieldSize        
+            for v = 1: lightFieldImage.angularLightFieldSize
+                Y = Y + measurement_masks(v, u) .* ...
+                    angularLightFields(:, :, v, u);  
             end
-            
-            Y(:, :, m) = lightFieldMeasurement;
+        end            
+    end
+    
+    for c = 1
+            % apply masks to the raw data to simulate measurements
+        for m = 1:M
+            lightFieldImageSingleChannel = lightFieldImage.lightField(:, :, :, :, c);           
+            Y(:, :, m) = applyMasks(lightFieldImageSingleChannel, squeeze(masks(:, :, m)));
         end
         
-
         % solve the reconstruction problem
         sigma = 0.1;    
         
-        
+        spg_bpdn(AReconFourierBasis, vectorizeLightField(Y), sigma)
+
+        % calculate MSE between recovered image and original image
+        % lightFieldImage.lightField   %% Change this
     end
 
+    %% function provided to BPDN solver
+    function v  = AReconFourierBasis( w, mode )
+    %ARECONFOURIERBASIS 
+        imageWidth = lightFieldImage.imageWidth;
+        imageHeight = lightFieldImage.imageHeight;
+
+        % w is in the sparse basis
+        if(mode == 1)
+            w1 = reshape(w, [imageHeight imageWidth ...
+                lightFieldImage.angularLightFieldSize lightFieldImage.angularLightFieldSize]);
+            
+            % apply ifft in the u and v axes
+            lightFieldSpatialDomain = ifft(ifft(w1, [], 3), 4);
+            
+            % apply masks            
+            v = applyMasks(lightFieldSpatialDomain, masks);
+            
+        elseif(mode == 2)
+            % apply masks adjoint operation, creates linear combination of
+            % masks
+
+
+            % apply sparse basis adjoint operation
+            % fft2
+            %v = sum(repmat(reshape(w, [1 1 M]), ...
+            %    [angularViewResizeFactor, angularViewResizeFactor, 1]).*masks, 3);
+        end
+    end
+    
     %% input measured light field data, size imageHeight x imageWidth x M
     % outputs vectorized data in images ordered
     function Y2 = vectorizeLightField(X)
@@ -59,41 +92,5 @@ function cs_reconstruction(lightFieldImage)
         Y2 = reshape(Y1,[imageHeight imageWidth numMeasurements]);
     end
     
-    %B = measurements vectorized
-
-    %spg_bpdn(AReconFourierBasis, B, sigma)  %% Change this        
-
-% 
-%     % calculate MSE between recovered image and original image
-%     % lightFieldImage.lightField   %% Change this
-%   
-%     function v  = AReconFourierBasis( w, mode )
-%     %ARECONFOURIERBASIS 
-%         if mode ==1
-%         return   
-%         elseif mode == 2
-%         return  v = sum(repmat(reshape(w, [1 1 M]), ...
-%             [angularViewResizeFactor, angularViewResizeFactor, 1]).*masks, 3);
-%         end
-%         
-%     
-%         % w is in the sparse basis
-%         if(mode == 1)
-%             % apply ifft2 in the u and v axes
-%             temp1 = repmat(ifft2(w), [1 1 M]);
-%             % apply masks
-%             v = squeeze(sum(sum(masks .* temp1,1),2));
-%             
-%         elseif(mode == 2)
-%             % apply masks adjoint operation, creates linear combination of
-%             % masks
-% 
-% 
-%             % apply sparse basis adjoint operation
-%             % fft2
-% 
-%         end
-%     end
-
 
 end
