@@ -10,23 +10,7 @@ function cs_reconstruction(lightFieldImage)
         lightFieldImage.angularLightFieldSize, M);
     % create array for our measurements
     Y = zeros(lightFieldImage.imageHeight, lightFieldImage.imageWidth , M);
-      
-    %% applies mask to a light field single channel
-    function Y = applyMasks(angularLightFields, measurement_masks)
-        % add some asserts
-        Y = zeros(lightFieldImage.imageHeight, ...
-                lightFieldImage.imageWidth, M);
-
-        for m = 1:M
-            for u = 1: lightFieldImage.angularLightFieldSize        
-                for v = 1: lightFieldImage.angularLightFieldSize
-                    Y(:, :, m) = Y(:, :, m) + measurement_masks(v, u, m) .* ...
-                        angularLightFields(:, :, v, u);  
-                end
-            end        
-        end
-    end
-    
+        
     for c = 1
         % apply masks to the raw data to simulate measurements
         lightFieldImageSingleChannel = lightFieldImage.lightField(:, :, :, :, c);           
@@ -35,8 +19,19 @@ function cs_reconstruction(lightFieldImage)
         % solve the reconstruction problem
         sigma = 0.1;    
         
-        spg_bpdn(AReconFourierBasis, vectorizeLightField(Y), sigma)
+        options = struct();
+        options.iterations = 100;
+        
+        [x r g info] = spg_bpdn(@AReconFourierBasis, vectorizeLightField(Y), sigma, options);
 
+        % reformat x into angular light fields
+        recovered_lightfield = reshape(x, [lightFieldImage.imageHeight, lightFieldImage.imageWidth, ...
+            lightFieldImage.angularLightFieldSize, lightFieldImage.angularLightFieldSize]);
+        
+        % take inverse fft
+        recovered_lightfield = ifft(ifft(recovered_lightfield, [], 3), [], 4);
+        
+        
         % calculate MSE between recovered image and original image
         % lightFieldImage.lightField   %% Change this
     end
@@ -47,8 +42,9 @@ function cs_reconstruction(lightFieldImage)
         imageWidth = lightFieldImage.imageWidth;
         imageHeight = lightFieldImage.imageHeight;
 
-        % w is in the sparse basis
         if(mode == 1)
+            % w is in the sparse basis and is the same size as the
+            % lightfield we want to recover
             w1 = reshape(w, [imageHeight imageWidth ...
                 lightFieldImage.angularLightFieldSize lightFieldImage.angularLightFieldSize]);
             
@@ -61,18 +57,32 @@ function cs_reconstruction(lightFieldImage)
             % vectorize
             v = vectorizeLightField(y);
             
-        elseif(mode == 2)
+        elseif(mode == 2)            
+            % the provided w is the same size as the measured data
+            w2 = reshape(w, [imageHeight imageWidth M]);
+            
             % apply masks adjoint operation, creates linear combination of
             % masks
-            w2 = reshape(w, [imageHeight imageWidth ...
-                lightFieldImage.angularLightFieldSize lightFieldImage.angularLightFieldSize]);
-            aa = reshape(w2(lightFieldImage.angularLightFieldSize*lightFieldImage.angularLightFieldSize, M))
+            adjointOutput = zeros(imageHeight, imageWidth, ...
+                lightFieldImage.angularLightFieldSize, lightFieldImage.angularLightFieldSize);
+
+            for v = 1:lightFieldImage.angularLightFieldSize
+               for u = 1:lightFieldImage.angularLightFieldSize                   
+                   % sum linear combinations of the masks
+                   for k = 1: M
+                      adjointOutput(:, :, v, u) = adjointOutput(:, :, v, u) + ...
+                          squeeze(masks(v, u, k)) * w2(:, :, k);
+                   end
+               end
+            end
+                
+            
             % apply sparse basis adjoint operation
             % fft2
-            lightFieldFourierDomain = fft(fft(w2, [],3), [], 4);
-            %v = sum(repmat(reshape(w, [1 1 M]), ...
+            lightFieldFourierDomain = fft(fft(adjointOutput, [],3), [], 4);
             
-            %    [angularViewResizeFactor, angularViewResizeFactor, 1]).*masks, 3);
+            v = lightFieldFourierDomain(:);
+
         end
     end
     
@@ -98,5 +108,19 @@ function cs_reconstruction(lightFieldImage)
         Y2 = reshape(Y1,[imageHeight imageWidth numMeasurements]);
     end
     
+    %% applies mask to a light field single channel
+    function Y = applyMasks(angularLightFields, measurement_masks)
+        % add some asserts
+        Y = zeros(lightFieldImage.imageHeight, ...
+                lightFieldImage.imageWidth, M);
 
+        for m = 1:M
+            for u = 1: lightFieldImage.angularLightFieldSize        
+                for v = 1: lightFieldImage.angularLightFieldSize
+                    Y(:, :, m) = Y(:, :, m) + measurement_masks(v, u, m) .* ...
+                        angularLightFields(:, :, v, u);  
+                end
+            end        
+        end
+    end
 end
