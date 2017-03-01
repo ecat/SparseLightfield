@@ -1,17 +1,18 @@
-function cs_reconstruction(lightFieldImage)
+function [recoveredLightField] = cs_reconstruction(lightFieldImage)
 
     %% perform CS reconstruction
 
     % number of measurements
-    M = 8;
+    M = 2;
 
     % generate masks
     masks = rand(lightFieldImage.angularLightFieldSize, ...
         lightFieldImage.angularLightFieldSize, M);
     % create array for our measurements
     Y = zeros(lightFieldImage.imageHeight, lightFieldImage.imageWidth , M);
+    recoveredLightField = zeros(size(lightFieldImage.lightField));
         
-    for c = 1
+    for c = 1:3
         % apply masks to the raw data to simulate measurements
         lightFieldImageSingleChannel = lightFieldImage.lightField(:, :, :, :, c);           
         Y = applyMasks(lightFieldImageSingleChannel, masks);
@@ -25,11 +26,13 @@ function cs_reconstruction(lightFieldImage)
         [x r g info] = spg_bpdn(@AReconFourierBasis, vectorizeLightField(Y), sigma, options);
 
         % reformat x into angular light fields
-        recovered_lightfield = reshape(x, [lightFieldImage.imageHeight, lightFieldImage.imageWidth, ...
+        recoveredLightFieldSingleChannel = reshape(x, [lightFieldImage.imageHeight, lightFieldImage.imageWidth, ...
             lightFieldImage.angularLightFieldSize, lightFieldImage.angularLightFieldSize]);
         
         % take inverse fft
-        recovered_lightfield = ifft(ifft(recovered_lightfield, [], 3), [], 4);
+        recoveredLightFieldSingleChannel = ifft(ifft(recoveredLightFieldSingleChannel, [], 3), [], 4);
+        
+        recoveredLightField(:, :, :, :, c) = recoveredLightFieldSingleChannel;
         
         
         % calculate MSE between recovered image and original image

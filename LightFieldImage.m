@@ -25,6 +25,7 @@ classdef LightFieldImage
         % (optional)
         % angularLightFieldSize
         % angularViewResizeFactor
+        % brightnessScale
         function obj = LightFieldImage(params)    
             
             filename = params.filename;
@@ -44,9 +45,15 @@ classdef LightFieldImage
             else
                 obj.angularViewResizeFactor = 1; 
             end
+            
+            if(isfield(params, 'brightnessScale'))
+                brightnessScale = params.brightnessScale;               
+            else                
+                brightnessScale = 1;
+            end
                       
             % load lightField image
-            obj.LF_microlens = im2double(imread(filename));
+            obj.LF_microlens = im2double(imread(filename)) * brightnessScale;
             % size of the raw light field
             num_y = size(obj.LF_microlens, 1); 
             num_x = size(obj.LF_microlens, 2); 
