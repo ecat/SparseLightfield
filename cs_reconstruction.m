@@ -7,9 +7,11 @@ function [recoveredLightField] = cs_reconstruction(lightFieldImage, reconParams)
 
     %% read in parameters structure
     if(isfield(reconParams, 'numMeasurements'))
-       % number of simulated measurements 
-       assert(reconParams.numMeasurements > 1) % otherwise there is a bug with squeeze
-       M = reconParams.numMeasurements;       
+        % number of simulated measurements 
+        assert(reconParams.numMeasurements > 1) % otherwise there is a bug with squeeze
+        M = reconParams.numMeasurements;    
+    elseif(isfield(reconParams, 'reconBasis'))
+        reconBasis = reconParams.reconBasis;
     end   
     
     
