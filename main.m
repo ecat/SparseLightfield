@@ -13,21 +13,25 @@ parameters.brightnessScale = 4;
 lightFieldImage = LightFieldImage(parameters)
 
 %% perform cs reconstruction
-[recoveredLightField] = cs_reconstruction(lightFieldImage);
-
+reconParams.numMeasurements = 16;
+tic
+[recoveredLightField] = cs_reconstruction(lightFieldImage, reconParams);
+toc
 
 %% compare results
-u = 3; v = 3;
-
+u_index = 3; v_index = 3;
 
 diff = lightFieldImage.lightField - recoveredLightField;
-mse = sum(diff(:).^2)
+mse = mean(diff(:).^2)
 
 figure;
 subplot(2, 1, 1)
-imshow(lightFieldImage.getImage(v, u));
-title(['original image  v = ' num2str(v) ' u = ' num2str(u)])
+imshow(lightFieldImage.getImage(v_index, u_index));
+title(['original image  v = ' num2str(v_index) ' u = ' num2str(u_index)])
 subplot(2, 1, 2)
-imshow(squeeze(recoveredLightField(:, :, v, u, :)));
+imshow(squeeze(recoveredLightField(:, :, v_index, u_index, :)));
 title(sprintf('recovered image MSE = %.2f', mse))
+
+
+
 

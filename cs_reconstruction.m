@@ -1,45 +1,70 @@
-function [recoveredLightField] = cs_reconstruction(lightFieldImage)
+function [recoveredLightField] = cs_reconstruction(lightFieldImage, reconParams)
 
-    %% perform CS reconstruction
-
-    % number of measurements
+    %% create default parameters
     M = 2;
+    reconBasis = ReconstructionBasis.FFT;
+    
+
+    %% read in parameters structure
+    if(isfield(reconParams, 'numMeasurements'))
+       % number of simulated measurements 
+       assert(reconParams.numMeasurements > 1) % otherwise there is a bug with squeeze
+       M = reconParams.numMeasurements;       
+    end   
+    
+    
+    %% perform CS reconstruction    
 
     % generate masks
     masks = rand(lightFieldImage.angularLightFieldSize, ...
-        lightFieldImage.angularLightFieldSize, M);
-    % create array for our measurements
-    Y = zeros(lightFieldImage.imageHeight, lightFieldImage.imageWidth , M);
+        lightFieldImage.angularLightFieldSize, M)/M;
+    
+    % create array for the recovered lightfield
     recoveredLightField = zeros(size(lightFieldImage.lightField));
         
-    for c = 1:3
+    channels = 1:3;
+    for c = channels
         % apply masks to the raw data to simulate measurements
         lightFieldImageSingleChannel = lightFieldImage.lightField(:, :, :, :, c);           
         Y = applyMasks(lightFieldImageSingleChannel, masks);
 
-        % solve the reconstruction problem
-        sigma = 0.1;    
+        % specify parameters for bpdn
+        sigma = 0.1;            
+        bpdnOptions = struct();
+        bpdnOptions.iterations = 100;
         
-        options = struct();
-        options.iterations = 100;
-        
-        [x r g info] = spg_bpdn(@AReconFourierBasis, vectorizeLightField(Y), sigma, options);
+        % solve reconstruction
+        [x r g info] = spg_bpdn(@AReconFourierBasis, vectorizeLightField(Y), sigma, bpdnOptions);
 
         % reformat x into angular light fields
         recoveredLightFieldSingleChannel = reshape(x, [lightFieldImage.imageHeight, lightFieldImage.imageWidth, ...
             lightFieldImage.angularLightFieldSize, lightFieldImage.angularLightFieldSize]);
         
-        % take inverse fft
-        recoveredLightFieldSingleChannel = ifft(ifft(recoveredLightFieldSingleChannel, [], 3), [], 4);
+        % take inverse fft of recovered solution
+        recoveredLightFieldSingleChannel = inverseBasisOperator(recoveredLightFieldSingleChannel);
         
-        recoveredLightField(:, :, :, :, c) = recoveredLightFieldSingleChannel;
-        
-        
-        % calculate MSE between recovered image and original image
-        % lightFieldImage.lightField   %% Change this
+        % save recovered solution into output
+        recoveredLightField(:, :, :, :, c) = recoveredLightFieldSingleChannel;        
+    end    
+    
+    function y = forwardBasisOperator(lightFieldSingleChannel)        
+        if(reconBasis == ReconstructionBasis.FFT)
+            y = fft(fft(lightFieldSingleChannel, [],3), [], 4);
+        else
+            assert(false, 'invalid reconBasis');              
+        end
     end
 
-    %% function provided to BPDN solver
+    function y = inverseBasisOperator(lightFieldSingleChannel)
+        if(reconBasis == ReconstructionBasis.FFT)
+            y = ifft(ifft(lightFieldSingleChannel, [], 3), [], 4);
+        else            
+            assert(false, 'invalid reconBasis');  
+        end
+    end
+    
+
+    %% function provided to BPDN solver that does reconstruction in Fourier basis
     function v  = AReconFourierBasis( w, mode )
     %ARECONFOURIERBASIS 
         imageWidth = lightFieldImage.imageWidth;
@@ -51,8 +76,8 @@ function [recoveredLightField] = cs_reconstruction(lightFieldImage)
             w1 = reshape(w, [imageHeight imageWidth ...
                 lightFieldImage.angularLightFieldSize lightFieldImage.angularLightFieldSize]);
             
-            % apply ifft in the u and v axes
-            lightFieldSpatialDomain = ifft(ifft(w1, [], 3), [], 4);
+            lightFieldSpatialDomain = inverseBasisOperator(w1);
+
             
             % apply masks            
             y = applyMasks(lightFieldSpatialDomain, masks);
@@ -77,19 +102,18 @@ function [recoveredLightField] = cs_reconstruction(lightFieldImage)
                           squeeze(masks(v, u, k)) * w2(:, :, k);
                    end
                end
-            end
-                
+            end                
             
             % apply sparse basis adjoint operation
-            % fft2
-            lightFieldFourierDomain = fft(fft(adjointOutput, [],3), [], 4);
+            lightFieldFourierDomain = forwardBasisOperator(adjointOutput);
             
+            % vectorize output
             v = lightFieldFourierDomain(:);
 
         end
     end
     
-    %% input measured light field data, size imageHeight x imageWidth x M
+    %% input simulated light field data, size imageHeight x imageWidth x M
     % outputs vectorized data in images ordered
     function Y2 = vectorizeLightField(X)
         assert(numel(size(X)) == 3)
@@ -111,9 +135,10 @@ function [recoveredLightField] = cs_reconstruction(lightFieldImage)
         Y2 = reshape(Y1,[imageHeight imageWidth numMeasurements]);
     end
     
-    %% applies mask to a light field single channel
+    %% applies mask to a single channel light field 
     function Y = applyMasks(angularLightFields, measurement_masks)
-        % add some asserts
+        
+        % create array for our measurements
         Y = zeros(lightFieldImage.imageHeight, ...
                 lightFieldImage.imageWidth, M);
 
@@ -123,7 +148,12 @@ function [recoveredLightField] = cs_reconstruction(lightFieldImage)
                     Y(:, :, m) = Y(:, :, m) + measurement_masks(v, u, m) .* ...
                         angularLightFields(:, :, v, u);  
                 end
-            end        
+            end       
+            
+            % add noise to each measurement, disabled for now
+            % stdev = 0.25;
+            % Y(:, :, m) = Y(:, :, m) + stdev * randn(size(Y(:, :, m)));
+            
         end
     end
 end
