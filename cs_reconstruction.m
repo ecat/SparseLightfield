@@ -1,4 +1,4 @@
-function [recoveredLightField] = cs_reconstruction(lightFieldImage, reconParams)
+function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, reconParams)
 
     %% create default parameters
     M = 2;
@@ -16,10 +16,11 @@ function [recoveredLightField] = cs_reconstruction(lightFieldImage, reconParams)
     
     
     %% perform CS reconstruction    
+    t_reconstruction = tic;
 
     % generate masks
     masks = rand(lightFieldImage.angularLightFieldSize, ...
-        lightFieldImage.angularLightFieldSize, M)/M;
+        lightFieldImage.angularLightFieldSize, M);
     
     % create array for the recovered lightfield
     recoveredLightField = zeros(size(lightFieldImage.lightField));
@@ -33,7 +34,7 @@ function [recoveredLightField] = cs_reconstruction(lightFieldImage, reconParams)
         % specify parameters for bpdn
         sigma = 0.1;            
         bpdnOptions = struct();
-        bpdnOptions.iterations = 100;
+        bpdnOptions.iterations = 400;
         
         % solve reconstruction
         [x r g info] = spg_bpdn(@AReconFourierBasis, vectorizeLightField(Y), sigma, bpdnOptions);
@@ -48,7 +49,25 @@ function [recoveredLightField] = cs_reconstruction(lightFieldImage, reconParams)
         % save recovered solution into output
         recoveredLightField(:, :, :, :, c) = recoveredLightFieldSingleChannel;        
     end    
+
+    % compute SNR   
+    diff = lightFieldImage.lightField - recoveredLightField;
+    mse = mean(diff(:).^2);
+    SNR = 20 * log10(mean(lightFieldImage.lightField(:).^2)/mse);
     
+    %% assemble results into structure
+    recoveredLightFieldResults = struct();
+    recoveredLightFieldResults.recoveredLightField = recoveredLightField;
+    recoveredLightFieldResults.SNR = SNR;
+    recoveredLightFieldResults.reconstructionTime = toc(t_reconstruction);
+    recoveredLightFieldResults.numMeasurements = M;
+    recoveredLightFieldResults.numAngularViews = lightFieldImage.angularLightFieldSize.^2;
+    recoveredLightFieldResults.reconBasis = reconBasis;
+    recoveredLightFieldResults.fractionOfMeasurements = M/(lightFieldImage.angularLightFieldSize.^2);
+    
+    return
+    
+    %%%%%%% Declare private functions %%%%%%%%%%%%%%%%    
     function y = forwardBasisOperator(lightFieldSingleChannel)        
         if(reconBasis == ReconstructionBasis.FFT)
             y = fft(fft(lightFieldSingleChannel, [],3), [], 4);
