@@ -34,7 +34,7 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
         % specify parameters for bpdn
         sigma = 0.1;            
         bpdnOptions = struct();
-        bpdnOptions.iterations = 400;
+        bpdnOptions.iterations = 200;
         
         % solve reconstruction
         [x r g info] = spg_bpdn(@AReconFourierBasis, vectorizeLightField(Y), sigma, bpdnOptions);
@@ -99,7 +99,6 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
             
             lightFieldSpatialDomain = inverseBasisOperator(w1);
 
-            
             % apply masks            
             y = applyMasks(lightFieldSpatialDomain, masks);
             
@@ -111,19 +110,16 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
             w2 = reshape(w, [imageHeight imageWidth M]);
             
             % apply masks adjoint operation, creates linear combination of
-            % masks
-            adjointOutput = zeros(imageHeight, imageWidth, ...
-                lightFieldImage.angularLightFieldSize, lightFieldImage.angularLightFieldSize);
-
-            for v = 1:lightFieldImage.angularLightFieldSize
-               for u = 1:lightFieldImage.angularLightFieldSize                   
-                   % sum linear combinations of the masks
-                   for k = 1: M
-                      adjointOutput(:, :, v, u) = adjointOutput(:, :, v, u) + ...
-                          squeeze(masks(v, u, k)) * w2(:, :, k);
-                   end
-               end
-            end                
+            % masks                   
+            w3 = repmat(w2, [1, 1, 1, ...
+                lightFieldImage.angularLightFieldSize, lightFieldImage.angularLightFieldSize]);
+            
+            w4 = permute(w3, [1 2 4 5 3]);
+            
+            masks_repeated = repmat(masks, [1, 1, 1, lightFieldImage.imageHeight, lightFieldImage.imageWidth]);
+            masks_repeated = permute(masks_repeated, [4 5 1 2 3]);
+            
+            adjointOutput = sum(w4 .* masks_repeated, 5);
             
             % apply sparse basis adjoint operation
             lightFieldFourierDomain = forwardBasisOperator(adjointOutput);

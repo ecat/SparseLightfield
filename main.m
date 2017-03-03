@@ -1,10 +1,10 @@
-%clear all; close all;
+clear all; close all;
 
 %% load bpdn solver
 addpath('spgl1-1.9')
 
 %% perform reconstruction over a lightfield image
-reconstructionResults = lightfield_reconstruction('flowers_plants_1_eslf.png')
+[originalLF reconstructionResults] = lightfield_reconstruction('flowers_plants_1_eslf.png')
 
 
 %% compare results
