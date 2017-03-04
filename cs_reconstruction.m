@@ -41,9 +41,6 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
         sigma = 0.001;                    
         [x r g info] = spg_bpdn(@AReconFourierBasis, vectorizeLightField(Y), sigma, bpdnOptions);
         
-        %tau = 0.1;
-        %[x r g info] = spg_lasso(@AReconFourierBasis, vectorizeLightField(Y), tau, bpdnOptions);
-
         % reformat x into angular light fields
         recoveredLightFieldSingleChannel = reshape(x, [lightFieldImage.imageHeight, lightFieldImage.imageWidth, ...
             lightFieldImage.angularLightFieldSize, lightFieldImage.angularLightFieldSize]);

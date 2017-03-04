@@ -2,29 +2,33 @@ function [ originalLightFieldImage reconstruction_results ] = lightfield_reconst
 %LIGHTFIELD_RECONSTRUCTION Sweeps over different reconstruction parameteres
 %for a given filename
 
-    reconstruction_results = {};
-
-    n = 1;
     %% load image
     parameters.filename = filename;
-    parameters.angularLightFieldSize = 6;
-    parameters.angularViewResizeFactor = 20;
+    parameters.angularLightFieldSize = 10;
+    parameters.angularViewResizeFactor = 4;
     parameters.brightnessScale = 4;
 
     lightFieldImage = LightFieldImage(parameters);
 
     %% perform cs reconstruction over different parameters
     sweepTimer = tic;
-    for numMeasurements = [2 4 8 10 16]
+    numMeasurements = [2 4 8 16];
+    
+    reconstruction_results = cell(numel(numMeasurements), 1);
+    poolobj = parpool(4);
+    
+    parfor k = 1: numel(numMeasurements);
         display(sprintf('Performing reconstruction using %d measurements.', numMeasurements))
+        reconParams = struct();
         reconParams.numMeasurements = numMeasurements;
         reconParams.reconBasis = ReconstructionBasis.FFT;
 
         [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, reconParams);
-        reconstruction_results{n} = recoveredLightFieldResults;
-        
-        n = n + 1;
+        reconstruction_results{k} = recoveredLightFieldResults;
     end
+    
+    delete(poolobj)
+    
     display('Total time taken: ')
     toc(sweepTimer)
 
