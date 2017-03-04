@@ -8,14 +8,14 @@ function [ originalLightFieldImage reconstruction_results ] = lightfield_reconst
     %% load image
     parameters.filename = filename;
     parameters.angularLightFieldSize = 6;
-    parameters.angularViewResizeFactor = 4;
+    parameters.angularViewResizeFactor = 20;
     parameters.brightnessScale = 4;
 
     lightFieldImage = LightFieldImage(parameters);
 
     %% perform cs reconstruction over different parameters
     sweepTimer = tic;
-    for numMeasurements = 2%[2 4 8 10 16]
+    for numMeasurements = [2 4 8 10 16]
         display(sprintf('Performing reconstruction using %d measurements.', numMeasurements))
         reconParams.numMeasurements = numMeasurements;
         reconParams.reconBasis = ReconstructionBasis.FFT;

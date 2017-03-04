@@ -5,6 +5,7 @@ classdef ReconstructionBasis
     
     enumeration
         FFT
+        EYE
     end
     
 end

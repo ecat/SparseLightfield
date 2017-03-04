@@ -10,7 +10,9 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
         % number of simulated measurements 
         assert(reconParams.numMeasurements > 1) % otherwise there is a bug with squeeze
         M = reconParams.numMeasurements;    
-    elseif(isfield(reconParams, 'reconBasis'))
+    end
+    
+    if(isfield(reconParams, 'reconBasis'))
         reconBasis = reconParams.reconBasis;
     end   
     
@@ -32,12 +34,15 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
         Y = applyMasks(lightFieldImageSingleChannel, masks);
 
         % specify parameters for bpdn
-        sigma = 0.1;            
         bpdnOptions = struct();
-        bpdnOptions.iterations = 200;
+        bpdnOptions.iterations = 1500;
         
         % solve reconstruction
+        sigma = 0.001;                    
         [x r g info] = spg_bpdn(@AReconFourierBasis, vectorizeLightField(Y), sigma, bpdnOptions);
+        
+        %tau = 0.1;
+        %[x r g info] = spg_lasso(@AReconFourierBasis, vectorizeLightField(Y), tau, bpdnOptions);
 
         % reformat x into angular light fields
         recoveredLightFieldSingleChannel = reshape(x, [lightFieldImage.imageHeight, lightFieldImage.imageWidth, ...
@@ -70,7 +75,9 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
     %%%%%%% Declare private functions %%%%%%%%%%%%%%%%    
     function y = forwardBasisOperator(lightFieldSingleChannel)        
         if(reconBasis == ReconstructionBasis.FFT)
-            y = fft(fft(lightFieldSingleChannel, [],3), [], 4);
+            y = fft(fft(lightFieldSingleChannel, [], 3), [], 4);
+        elseif(reconBasis == ReconstructionBasis.EYE)
+            y = lightFieldImageSingleChannel;
         else
             assert(false, 'invalid reconBasis');              
         end
@@ -79,6 +86,8 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
     function y = inverseBasisOperator(lightFieldSingleChannel)
         if(reconBasis == ReconstructionBasis.FFT)
             y = ifft(ifft(lightFieldSingleChannel, [], 3), [], 4);
+        elseif(reconBasis == ReconstructionBasis.EYE)
+            y = lightFieldImageSingleChannel;            
         else            
             assert(false, 'invalid reconBasis');  
         end
