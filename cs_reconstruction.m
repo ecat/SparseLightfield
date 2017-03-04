@@ -34,12 +34,13 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
         Y = applyMasks(lightFieldImageSingleChannel, masks);
 
         % specify parameters for bpdn
-        bpdnOptions = struct();
-        bpdnOptions.iterations = 1500;
+        bpOptions = struct();
+        bpOptions.iterations = 1500;
         
         % solve reconstruction
-        sigma = 0.001;                    
-        [x r g info] = spg_bpdn(@AReconFourierBasis, vectorizeLightField(Y), sigma, bpdnOptions);
+        sigma = 0.0;                    
+        [x r g info] = spg_bpdn(@AReconFourierBasis, vectorizeLightField(Y), sigma, bpOptions);
+        %[x r g info] = spg_bp(@ReconFourierBasis, vectorizeLightField(Y), bpOptions);
         
         % reformat x into angular light fields
         recoveredLightFieldSingleChannel = reshape(x, [lightFieldImage.imageHeight, lightFieldImage.imageWidth, ...

@@ -1,4 +1,4 @@
-clear all; close all;
+%clear all; close all;
 
 %% load bpdn solver
 addpath('spgl1-1.9')
