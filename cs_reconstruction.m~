@@ -29,7 +29,7 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
         
     channels = 1:3;
     for c = channels
-        display(['START M = ' num2str(M) ' channel ' num2str(c)])
+        display
         % apply masks to the raw data to simulate measurements
         lightFieldImageSingleChannel = lightFieldImage.lightField(:, :, :, :, c);           
         Y = applyMasks(lightFieldImageSingleChannel, masks);
@@ -37,7 +37,6 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
         % specify parameters for bpdn
         bpOptions = struct();
         bpOptions.iterations = 1500;
-        bpOptions.verbosity = 0;
         
         % solve reconstruction
         sigma = 0.0;                    
