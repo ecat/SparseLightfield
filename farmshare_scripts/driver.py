@@ -27,17 +27,20 @@ for n in range(0, num_images):
 addpath('spgl1-1.9');
 
 %% download lightfield image
+display('Downloading lightfield image')
 system('%s')
 
 %% perform reconstruction
-[originalLF reconstructionResults] = lightfield_reconstruction('%s');
+display('Doing reconstruction')
+[originalLF reconstructionResults] = lightfield_reconstruction('farmshare_run/run%d/%s');
 
 %% delete lightfield image to preserve disk space
+display('Deleting lightfield image')
 system('%s')
 
 %% print results to a file
-print reconstructionResults{1}.SNR
-	'''% (curl_command, filename, delete_command)
+display(reconstructionResults{1}.SNR)
+	'''% (curl_command, n, filename, delete_command)
 
 	# create run folder
 	os.mkdir('farmshare_run/run%d' % n)
@@ -53,7 +56,7 @@ print reconstructionResults{1}.SNR
 #$ -e farmshare_run/run%d/job.error
 #$ -cwd
 #$ -S /bin/bash
-#$ shm 12
+#$ -pe shm 12
 ##$ -l testq=1
 
 module load matlab
