@@ -1,0 +1,10 @@
+EE 367 Project Winter 2017
+
+Philip Lee
+Anqi Ji
+
+To run on corn server, use
+
+> python farmshare_scripts/driver.py
+
+from the project home directory
