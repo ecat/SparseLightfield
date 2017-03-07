@@ -6,6 +6,7 @@ classdef ReconstructionBasis
     enumeration
         FFT
         EYE
+        HAAR
     end
     
 end

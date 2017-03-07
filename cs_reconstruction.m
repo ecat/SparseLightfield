@@ -16,7 +16,6 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
         reconBasis = reconParams.reconBasis;
     end   
     
-    
     %% perform CS reconstruction    
     t_reconstruction = tic;
 
@@ -27,7 +26,7 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
     % create array for the recovered lightfield
     recoveredLightField = zeros(size(lightFieldImage.lightField));
         
-    channels = 1:3;
+    channels = [1:3];
     for c = channels
         display(['START M = ' num2str(M) ' channel ' num2str(c)])
         % apply masks to the raw data to simulate measurements
@@ -37,19 +36,35 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
         % specify parameters for bpdn
         bpOptions = struct();
         bpOptions.iterations = 1500;
-        bpOptions.verbosity = 0;
+        bpOptions.verbosity = 1;
         
         % solve reconstruction
-        sigma = 0.0;                    
-        [x r g info] = spg_bpdn(@AReconFourierBasis, vectorizeLightField(Y), sigma, bpOptions);
-        %[x r g info] = spg_bp(@ReconFourierBasis, vectorizeLightField(Y), bpOptions);
+        sigma = 0.0;
         
-        % reformat x into angular light fields
-        recoveredLightFieldSingleChannel = reshape(x, [lightFieldImage.imageHeight, lightFieldImage.imageWidth, ...
-            lightFieldImage.angularLightFieldSize, lightFieldImage.angularLightFieldSize]);
+        if(reconBasis == ReconstructionBasis.FFT)
+            [x r g info] = spg_bpdn(@AReconFourierBasis, vectorizeLightField(Y), sigma, bpOptions);
+        elseif(reconBasis == ReconstructionBasis.HAAR)
+            [x r g info] = spg_bpdn(@AReconWaveletBasis, vectorizeLightField(Y), sigma, bpOptions);            
+        else
+            assert(false)
+        end
         
-        % take inverse fft of recovered solution
-        recoveredLightFieldSingleChannel = inverseBasisOperator(recoveredLightFieldSingleChannel);
+        if(reconBasis == ReconstructionBasis.FFT)
+           
+            % reformat x into angular light fields
+            recoveredLightFieldSingleChannel = reshape(x, [lightFieldImage.imageHeight, lightFieldImage.imageWidth, ...
+                lightFieldImage.angularLightFieldSize, lightFieldImage.angularLightFieldSize]);
+            
+            % take inverse fft of recovered solution
+            recoveredLightFieldSingleChannel = inverseBasisOperator(recoveredLightFieldSingleChannel);
+        elseif(reconBasis == ReconstructionBasis.HAAR)
+            recoveredLightFieldSingleChannelSparse = reshape(x, [lightFieldImage.imageHeight, lightFieldImage.imageWidth, ...
+                lightFieldImage.angularLightFieldSize/2, lightFieldImage.angularLightFieldSize/2, 4]);
+                        
+            recoveredLightFieldSingleChannel = backwardWaveletOperator(recoveredLightFieldSingleChannelSparse);
+        else
+            assert(false)
+        end
         
         % save recovered solution into output
         recoveredLightField(:, :, :, :, c) = recoveredLightFieldSingleChannel;        
@@ -73,6 +88,55 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
     return
     
     %%%%%%% Declare private functions %%%%%%%%%%%%%%%%    
+    function y = forwardWaveletOperator(lightFieldSingleChannel)
+        imageWidth = lightFieldImage.imageWidth;
+        imageHeight = lightFieldImage.imageHeight;
+        
+        lightFieldWaveletDomain = zeros(imageHeight, imageWidth, ...
+            lightFieldImage.angularLightFieldSize/2, lightFieldImage.angularLightFieldSize/2, 4);
+        
+        % apply dwt2 to data
+        for dy = 1:imageHeight
+            for dx = 1:imageWidth
+                [cA, cH, cV, cD] = dwt2(squeeze(lightFieldSingleChannel(dy, dx, :, :)), 'haar');
+                lightFieldWaveletDomain(dy, dx, :, :, 1) = cA;
+                lightFieldWaveletDomain(dy, dx, :, :, 2) = cH;
+                lightFieldWaveletDomain(dy, dx, :, :, 3) = cV;
+                lightFieldWaveletDomain(dy, dx, :, :, 4) = cD;
+            end
+        end
+        
+        y = lightFieldWaveletDomain;
+    end
+    
+    function y = backwardWaveletOperator(lightFieldSingleChannel)  
+        imageWidth = lightFieldImage.imageWidth;
+        imageHeight = lightFieldImage.imageHeight;   
+        
+        assert(numel(size(lightFieldSingleChannel)) == 5);
+        
+        cA = squeeze(lightFieldSingleChannel(:, :, :, :, 1));
+        cH = squeeze(lightFieldSingleChannel(:, :, :, :, 2));
+        cV = squeeze(lightFieldSingleChannel(:, :, :, :, 3));
+        cD = squeeze(lightFieldSingleChannel(:, :, :, :, 4));
+        
+        lightFieldSpatialDomain = zeros(size(squeeze(lightFieldImage.lightField(:, :, :, :, 1))));
+        
+        for dy = 1: imageHeight
+            for dx = 1:imageWidth
+                cA_yx = squeeze(cA(dy, dx, :, :));
+                cH_yx = squeeze(cH(dy, dx, :, :));
+                cV_yx = squeeze(cV(dy, dx, :, :));
+                cD_yx = squeeze(cD(dy, dx, :, :));
+                
+                lightFieldSpatialDomain(dy, dx, :, :) = ...
+                    idwt2(cA_yx, cH_yx, cV_yx, cD_yx, 'haar');
+            end
+        end
+        
+        y = lightFieldSpatialDomain;
+    end
+    
     function y = forwardBasisOperator(lightFieldSingleChannel)        
         if(reconBasis == ReconstructionBasis.FFT)
             y = fft(fft(lightFieldSingleChannel, [], 3), [], 4);
@@ -93,6 +157,45 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
         end
     end
     
+    function v = AReconWaveletBasis(w, mode)
+        imageWidth = lightFieldImage.imageWidth;
+        imageHeight = lightFieldImage.imageHeight;
+        
+        if(mode == 1)
+            % w is in the sparse basis
+            w1 = reshape(w, imageHeight, imageWidth, ...
+                lightFieldImage.angularLightFieldSize/2, lightFieldImage.angularLightFieldSize/2, 4);
+            
+            lightFieldSpatialDomain = backwardWaveletOperator(w1);
+            
+            % apply masks
+            y = applyMasks(lightFieldSpatialDomain, masks);
+            
+            % vectorize
+            v = vectorizeLightField(y);
+        elseif(mode == 2)
+            % the provided w is the same size as the measured data
+            w2 = reshape(w, [imageHeight imageWidth M]);
+            
+            % apply masks adjoint operation, creates linear combination of
+            % masks                   
+            w3 = repmat(w2, [1, 1, 1, ...
+                lightFieldImage.angularLightFieldSize, lightFieldImage.angularLightFieldSize]);
+            
+            w4 = permute(w3, [1 2 4 5 3]);
+            
+            masks_repeated = repmat(masks, [1, 1, 1, lightFieldImage.imageHeight, lightFieldImage.imageWidth]);
+            masks_repeated = permute(masks_repeated, [4 5 1 2 3]);
+            
+            adjointOutput = sum(w4 .* masks_repeated, 5);
+            
+            lightFieldWaveletDomain = forwardWaveletOperator(adjointOutput);
+                        
+            v = lightFieldWaveletDomain(:);
+        end
+        
+    end
+
 
     %% function provided to BPDN solver that does reconstruction in Fourier basis
     function v  = AReconFourierBasis( w, mode )

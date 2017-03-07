@@ -5,31 +5,32 @@ function [ originalLightFieldImage reconstruction_results ] = lightfield_reconst
     %% load image
     parameters.filename = filename;
     parameters.angularLightFieldSize = 10;
-    parameters.angularViewResizeFactor = 6;
-    %parameters.angularViewResizeFactor = 100;
+    %parameters.angularViewResizeFactor = 6;
+    parameters.angularViewResizeFactor = 24;
     parameters.brightnessScale = 4;
 
     lightFieldImage = LightFieldImage(parameters);
 
     %% perform cs reconstruction over different parameters
     sweepTimer = tic;
-    numMeasurements = [2 4 8 12 16 22 24 26 28 32 36 40];
+    numMeasurements = 40;%[2 4 8 12 16 22 24 26 28 32 36 40];
     
     reconstruction_results = cell(numel(numMeasurements), 1);
-    %poolobj = parpool(8);
     
     % on corn default is 12 threads
-    parfor k = 1: numel(numMeasurements);
+    %parfor k = 1: numel(numMeasurements);
+    for k = 1: numel(numMeasurements)
         %display(sprintf('Performing reconstruction using %d measurements.', numMeasurements))
         reconParams = struct();
         reconParams.numMeasurements = numMeasurements(k);
-        reconParams.reconBasis = ReconstructionBasis.FFT;
+        %reconParams.reconBasis = ReconstructionBasis.FFT;
+        reconParams.reconBasis = ReconstructionBasis.HAAR;
 
         [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, reconParams);
         reconstruction_results{k} = recoveredLightFieldResults;
     end
     
-    %delete(poolobj)
+
     
     display('Total time taken: ')
     toc(sweepTimer)
