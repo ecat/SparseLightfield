@@ -39,8 +39,8 @@ display('Deleting lightfield image')
 system('%s')
 
 %% print results to a file
-display(reconstructionResults{1}.SNR)
-	'''% (curl_command, n, filename, delete_command)
+save('farmshare_run/run%d/reconstructionResults.mat', 'reconstructionResults')
+	'''% (curl_command, n, filename, delete_command, n)
 
 	# create run folder
 	os.mkdir('farmshare_run/run%d' % n)
@@ -57,7 +57,6 @@ display(reconstructionResults{1}.SNR)
 #$ -cwd
 #$ -S /bin/bash
 #$ -pe shm 12
-##$ -l testq=1
 
 module load matlab
 matlab -nodesktop < farmshare_run/run%d/run.m
