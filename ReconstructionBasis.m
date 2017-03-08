@@ -5,10 +5,9 @@ classdef ReconstructionBasis
     
     enumeration
         FFT
-        EYE
         HAAR
         DCT
-        WAVELET = {'HAAR','MORLET','SYMLET','MEXHAT'}   % 'haar','morl','sym','mexh'
+        %WAVELET = {'HAAR','MORLET','SYMLET','MEXHAT'}   % 'haar','morl','sym','mexh'
     end
     
 end

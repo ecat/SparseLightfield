@@ -4,7 +4,6 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
     M = 2;
     reconBasis = ReconstructionBasis.FFT;
     
-    f1 = 0; f2 = 0; f3 = 0; f4 = 0;
     %% read in parameters structure
     if(isfield(reconParams, 'numMeasurements'))
         % number of simulated measurements 
@@ -41,17 +40,15 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
         % solve reconstruction
         sigma = 0.0;
         
-        if(reconBasis == ReconstructionBasis.FFT)
+        if(reconBasis == ReconstructionBasis.FFT || reconBasis == ReconstructionBasis.DCT)
             [x r g info] = spg_bpdn(@AReconFourierBasis, vectorizeLightField(Y), sigma, bpOptions);
         elseif(reconBasis == ReconstructionBasis.WAVELET)
             [x r g info] = spg_bpdn(@AReconWaveletBasis, vectorizeLightField(Y), sigma, bpOptions);
-        elseif(reconBasis == ReconstructionBasis.DCT)
-            [x r g info] = spg_bpdn(@AReconFourierBasis, vectorizeLightField(Y), sigma, bpOptions);
         else
             assert(false)
         end
         
-        if(reconBasis == ReconstructionBasis.FFT)
+        if(reconBasis == ReconstructionBasis.FFT || reconBasis == ReconstructionBasis.DCT)
            
             % reformat x into angular light fields
             recoveredLightFieldSingleChannel = reshape(x, [lightFieldImage.imageHeight, lightFieldImage.imageWidth, ...
@@ -59,14 +56,10 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
             
             % take inverse fft of recovered solution
             recoveredLightFieldSingleChannel = inverseBasisOperator(recoveredLightFieldSingleChannel);
-        elseif(reconBasis == ReconstructionBasis.WAVELET)
+        elseif(reconBasis == ReconstructionBasis.HAAR)
             recoveredLightFieldSingleChannelSparse = reshape(x, [lightFieldImage.imageHeight, lightFieldImage.imageWidth, ...
                 lightFieldImage.angularLightFieldSize/2, lightFieldImage.angularLightFieldSize/2, 4]);           
             recoveredLightFieldSingleChannel = backwardWaveletOperator(recoveredLightFieldSingleChannelSparse);
-        elseif(reconBasis == ReconstructionBasis.DCT)
-            recoveredLightFieldSingleChannel = reshape(x, [lightFieldImage.imageHeight, lightFieldImage.imageWidth, ...
-                lightFieldImage.angularLightFieldSize, lightFieldImage.angularLightFieldSize]);
-            recoveredLightFieldSingleChannel = inverseBasisOperator(recoveredLightFieldSingleChannel);
         else
             assert(false)
         end
@@ -78,7 +71,7 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
     % compute SNR   
     diff = lightFieldImage.lightField - recoveredLightField;
     mse = mean(diff(:).^2);
-    SNR = 20 * log10(mean(lightFieldImage.lightField(:).^2)/mse);
+    SNR = 10 * log10(mean(lightFieldImage.lightField(:).^2)/mse);
     
     %% assemble results into structure
     recoveredLightFieldResults = struct();
@@ -144,18 +137,18 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
     
     
     function y = forwardBasisOperator(lightFieldSingleChannel)  
-        y = zeros(size(lightFieldImageSingleChannel));
-        imageWidth = lightFieldImage.imageWidth;
-        imageHeight = lightFieldImage.imageHeight;
         if(reconBasis == ReconstructionBasis.FFT)
             y = fft(fft(lightFieldSingleChannel, [], 3), [], 4);
-        elseif(reconBasis == ReconstructionBasis.EYE)
-            y = lightFieldImageSingleChannel;
-         elseif(reconBasis == ReconstructionBasis.DCT)
+        elseif(reconBasis == ReconstructionBasis.DCT)
+            
+            y = zeros(size(lightFieldImageSingleChannel));
+            imageWidth = lightFieldImage.imageWidth;
+            imageHeight = lightFieldImage.imageHeight;
+            
             temp = permute(lightFieldSingleChannel,[3 4 1 2]);
             for dy = 1:imageHeight
                 for dx = 1:imageWidth
-                    y(dy,dx,:,:) = dct2(squeeze(temp(:,:,dy,dx))); 
+                    y(dy,dx,:,:) = dct2(squeeze(temp(:,:,dy,dx)));
                 end
             end
         else
@@ -164,14 +157,14 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
     end
 
     function y = inverseBasisOperator(lightFieldSingleChannel)
-        imageWidth = lightFieldImage.imageWidth;
-        imageHeight = lightFieldImage.imageHeight; 
-        y = zeros(size(lightFieldImageSingleChannel));
+
         if(reconBasis == ReconstructionBasis.FFT)
             y = ifft(ifft(lightFieldSingleChannel, [], 3), [], 4);
-        elseif(reconBasis == ReconstructionBasis.EYE)
-            y = lightFieldImageSingleChannel;            
         elseif(reconBasis == ReconstructionBasis.DCT)
+            imageWidth = lightFieldImage.imageWidth;
+            imageHeight = lightFieldImage.imageHeight; 
+            y = zeros(size(lightFieldImageSingleChannel));            
+            
             temp = permute(lightFieldSingleChannel,[3 4 1 2]);
             for dy =  1:imageHeight
                 for dx = 1:imageWidth
