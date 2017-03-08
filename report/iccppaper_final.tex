@@ -83,7 +83,7 @@ Intuitively, this optimization seeks to concentrate the energy of the reconstruc
 
 \[ \hat{\theta} = \argmin_\theta ||\theta||_1 \quad s.t. \quad \Psi\Phi\theta = y\]
 
-This problem is known as Basis Pursuit (BP). For the general case with added noise in the measurements, the problem becomes
+This problem is known as Basis Pursuit (BP) \cite{BasisPursuit1}. For the general case with added noise in the measurements, the problem becomes
 
 \[ \hat{\theta} = \argmin_\theta ||\theta||_1 \quad s.t. \quad ||\Psi\Phi\theta - y||_2 < \sigma\]
 
@@ -110,17 +110,23 @@ and the lightfield is recovered using
 \[ \hat{L} = \Phi \hat{\theta}\]
 
 
-
 \section{Methods}
 
-dataset used
-where is code available
-How is sensing matrix created
-Used BPDN solver with parameters
-Describe different basis used
-Describe datasets used, resizing
+
+50 images were chosen at random from the nine different categories of the Stanford Lytro Light Field Archive \footnote{\url{lightfields.stanford.edu}}. Lytro images have a native resolution of $4 \times 4$ pixels, and consist of $14 \times 14$ angular views over the RGB colour channels. Each angular view for the raw Lytro image is $4 \times 4$. Our simulations reduced the resolution of each angular view by a factor of $8$ using bilinear interpolation in order to reduce reconstruction time. Only the center $10 \times 10$ angular views of each image were considered for the simulation as the microlens array in the Lytro camera causes pixels at the edge to be obscured.
+
+The sensing matrix was created by for multiple compression factors
+
+The sparse reconstruction was solved using SPGL1 \footnote{\url{http://www.cs.ubc.ca/~mpf/spgl1/}} \cite{BasisPursuit1}\cite{BasisPursuit2}.
+
+The reconstruction was performed using the following orthonormal basis: DCT, Fourier, Haar Wavelets, and Debauche Wavelets.
+
+Reconstructions were performed in parallel for 
+
 Describe farmshare scripts, approximate time for reconstruction
-Definition of SNR
+We define the SNR as the energy in the original signal divided by the mean squared error of the reconstruction across all colour channels. 
+
+\[SNR = 20 \log_{10}{\frac{||x||_2}{||x_r - x||_2}}\] where $x$ is the original lightfield image, and $x_r$ is the reconstructed lightfield image and $|| \cdot ||_2$ is the $l2$ norm.
 
 \section{Results}
 
