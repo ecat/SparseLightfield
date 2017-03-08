@@ -1,0 +1,131 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\usepackage{iccp}
+\usepackage{times}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{url}
+\usepackage{graphicx}
+\DeclareMathOperator*{\argmin}{\arg\!\min}
+% for rapid builds, with bounding boxes instead of images add the [draft] option to graphicx
+% \usepackage[draft]{graphicx}
+
+\iccpfinalcopy % *** Uncomment this line for the final submission
+
+\def\iccpPaperID{****} % *** Enter the ICCP Paper ID here
+\def\httilde{\mbox{\tt\raisebox{-.5ex}{\symbol{126}}}}
+
+% Pages are numbered in submission mode, and unnumbered in camera-ready
+\ificcpfinal\pagestyle{empty}\fi
+\begin{document}
+
+%%%%%%%%% TITLE
+\title{Comparison of Sparsity in Different Basis for Lightfields}
+
+\author{Philip K. Lee\\
+Stanford University\\
+Electrical Engineering Department\\
+{\tt\small pkl.lee@stanford.edu}
+\and
+Anqi R. Ji\\
+Stanford University\\
+Electrical Engineering Department\\
+{\small\url{anqi@stanford.edu}}
+}
+
+\maketitle
+\thispagestyle{empty}
+
+%%%%%%%%% ABSTRACT
+\begin{abstract}
+
+\end{abstract}
+
+\section{Introduction}
+
+Copy from proposal and expand
+
+\section{Background}
+
+In the background, we present the basic notation and mathematics for lightfields and compressed sensing.
+
+\subsection{Lightfields}
+
+\subsection{Compressed Sensing}
+
+In this section we present the formulation of the compressed sensing framework \cite{CSPaper} for the general case and for lightfields. A signal $x \in \mathbb{R}^N$ which is $K$-sparse in some basis $\Phi \in \mathbb{R}^{N\times N}$, i.e.,
+
+\[ x = \Phi \theta, \quad ||\theta||_0 = K, \quad K \ll N\]
+
+can be recovered using a smaller vector $y \in \mathbb{R}^M, M < K < N$, where $y$ is a vector consisting of linear combinations of $x$. In matrix notation, $y$ can be expressed as 
+
+\[ y = \Psi x, \quad \Psi \in \mathbb{R}^{M \times N}\]
+
+$\Psi$ is known as the sensing matrix. The vector $x$ can be recovered as $\hat{x}$ if $M$ is large enough ($M \sim K\log(N/K)$) by finding the optimum solution for 
+
+\[ \hat{\theta} = \argmin_\theta ||\theta||_0 \quad s.t. \quad \Psi\Phi\theta = y\]
+
+and recovering $\hat{x}$ using
+
+\[ \hat{x} = \Phi \hat{\theta}\]
+
+Intuitively, this optimization seeks to concentrate the energy of the reconstructed signal in as few coefficients as possible in the sparse basis, while also ensuring that applying the sensing matrix to the reconstructed signal is close to the measurements. However, $l_0$ optimization is NP-hard, so instead we resort to the $l_1$ norm which approximates the $l_0$ norm
+
+\[ \hat{\theta} = \argmin_\theta ||\theta||_1 \quad s.t. \quad \Psi\Phi\theta = y\]
+
+This problem is known as Basis Pursuit (BP). For the general case with added noise in the measurements, the problem becomes
+
+\[ \hat{\theta} = \argmin_\theta ||\theta||_1 \quad s.t. \quad ||\Psi\Phi\theta - y||_2 < \sigma\]
+
+
+where $\sigma$ is a bound for the noise in the measurements. This is the Basis Pursuit Denoise (BPDN) problem. In our work, we only consider Basis Pursuit.
+
+\subsection{Compressed Sensing for Lightfields}
+
+In the background, we considered the reconstruction of signals in 1 dimension. However, a lightfield exists in 4 dimensions: the spatial dimensions $x, y$ and the angular dimensions $u, v$. In this section, we will recast the problem in terms of the dimensions for a 4D lightfield. Note that the dimensions for the matrix multiplications may not align, but this section is included to clarify the reconstruction for 4D lightfields.
+
+Consider a lightfield $L \in \mathbb{R}^{w \times h \times n \times n}$, where $w$ and $h$ are respectively the width and height of each angular image. For simplicity, we assume that the number of angular lightfield views $n$ is equal in each dimension. We wish to recover $L$ using only linear combinations of $L$.
+
+Our sensing matrix $\Psi$ operates on the angular images, therefore $\Psi$ is of size $\mathbb{R}^{M \times n \times n}$ where $M$ is the number of measurements. Our measured data is therefore
+
+\[Y = \Psi L, \quad Y \in \mathbb{R}^{w \times h \times M}\]
+
+The orthogonal basis $\Phi$ operates in the angular domain, so $\Phi \in \mathbb{R}^{n \times n}$. The BP problem becomes
+
+\[ \hat{\theta} = \argmin_\theta ||\theta||_1 \quad s.t. \quad \Psi\Phi\theta = Y\]
+\[ \hat{\theta}, \theta \in \mathbb{R}^{w \times h \times n \times n}\]
+
+and the lightfield is recovered using
+
+\[ \hat{L} = \Phi \hat{\theta}\]
+
+
+
+\section{Methods}
+
+dataset used
+where is code available
+How is sensing matrix created
+Used BPDN solver with parameters
+Describe different basis used
+Describe datasets used, resizing
+Describe farmshare scripts, approximate time for reconstruction
+Definition of SNR
+
+\section{Results}
+
+SNR graphs for different compression basis
+Select images
+
+\section{Discussion}
+
+\section{Conclusion}
+
+
+
+{\small
+\bibliographystyle{ieee}
+\bibliography{egbib}
+}
+
+\end{document}
