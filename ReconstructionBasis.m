@@ -7,6 +7,8 @@ classdef ReconstructionBasis
         FFT
         EYE
         HAAR
+        DCT
+        WAVELET = {'HAAR','MORLET','SYMLET','MEXHAT'}   % 'haar','morl','sym','mexh'
     end
     
 end
