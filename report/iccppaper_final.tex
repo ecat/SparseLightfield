@@ -53,7 +53,7 @@ A second approach applied in \cite{LFDict} recovers the light field using a rand
 
 Compressive sensing \cite{IntroCS}\cite{CompressiveSensingMega} is another approach to reconstruction of the light field using sparse samples. By applying a randomly-coded aperture mask to the lens, the authors of \cite{SparsityInCFD} were able to reconstruct the light field with a superior angular resolution and SNR compared to sequentially opening and blocking small regions of the aperture. The light field is recovered using a Bayesian reconstruction model with Total Variation and Gaussian priors. A Majorize-Minimization optimization was used to recover the light field.
 
-In order to achieve the best reconstruction using compressive sensing, it is desirable to perform the reconstruction in the basis in which the original signal is most sparse, as a higher percentage of the signal's energy will be concentrated in fewer coefficients of the sparse basis \cite{CompressiveSensingMega}. Therefore it is advantageous to determine in what basis the angular lightfield is most sparse. This was explored in part in \cite{mainP1}, but only the basis that yielded the best reconstruction for each compression was shown. The goal of our work is to experimentally determine the basis in which lightfields are most sparse by performing sparse reconstructions of the lightfield for different compression factors. We use images captured from a Lytro Illum camera available from the Stanford Lightfield Archive \footnote{Available: \url{lightfields.stanford.edu}} to simulate measurements and determine the reconstruction error for different basis.
+In order to achieve the best reconstruction using compressive sensing, it is desirable to perform the reconstruction in the basis in which the original signal is most sparse, as a higher percentage of the signal's energy will be concentrated in fewer coefficients of the sparse basis \cite{CompressiveSensingMega}. Therefore it is advantageous to determine in what basis the angular lightfield is most sparse. This was explored in part in \cite{mainP1}, but only the basis that yielded the best reconstruction for each compression was shown. The goal of our work is to experimentally determine the basis in which lightfields are most sparse by performing sparse reconstructions of the lightfield for different compression factors. We use images captured from a Lytro Illum camera available from the Stanford Lytro Light Field Archive \footnote{Available: \url{lightfields.stanford.edu}} to simulate measurements and determine the reconstruction error for different basis.
 
 \section{Background}
 
@@ -109,24 +109,44 @@ and the lightfield is recovered using
 
 \[ \hat{L} = \Phi \hat{\theta}\]
 
+To solve the BP problem, it is convenient to let the matrix $A = \Psi\Phi$. We can now define the adjoint operator as $A' = \Phi'\Psi'$ where the $'$ denotes the transpose. Since $\Phi$ is orthonormal, $\Phi'\Phi = I$, so $\Phi'$ is the inverse of the basis operator. 
 
 \section{Methods}
 
 
-50 images were chosen at random from the nine different categories of the Stanford Lytro Light Field Archive \footnote{\url{lightfields.stanford.edu}}. Lytro images have a native resolution of $4 \times 4$ pixels, and consist of $14 \times 14$ angular views over the RGB colour channels. Each angular view for the raw Lytro image is $4 \times 4$. Our simulations reduced the resolution of each angular view by a factor of $8$ using bilinear interpolation in order to reduce reconstruction time. Only the center $10 \times 10$ angular views of each image were considered for the simulation as the microlens array in the Lytro camera causes pixels at the edge to be obscured.
+50 images were chosen at random from the nine different categories of the Stanford Lytro Light Field Archive \footnote{Available: \url{lightfields.stanford.edu}}. Lytro images have a native resolution of $4 \times 4$ pixels, and consist of $14 \times 14$ angular views over the RGB colour channels. Each angular view for the raw Lytro image is $4 \times 4$. Our simulations reduced the resolution of each angular view by a factor of $8$ using bilinear interpolation in order to reduce reconstruction time. Only the center $10 \times 10$ angular views of each image were considered for the simulation as the microlens array in the Lytro camera causes pixels at the edge to be obscured.
 
 The sensing matrix was created by for multiple compression factors
 
-The sparse reconstruction was solved using SPGL1 \footnote{\url{http://www.cs.ubc.ca/~mpf/spgl1/}} \cite{BasisPursuit1}\cite{BasisPursuit2}.
+The sparse reconstruction was solved using SPGL1\footnote{\url{http://www.cs.ubc.ca/~mpf/spgl1/}} \cite{BasisPursuit1}\cite{BasisPursuit2}. Approximately $1500$ iterations was sufficient to converge on the solution.
 
 The reconstruction was performed using the following orthonormal basis: DCT, Fourier, Haar Wavelets, and Debauche Wavelets.
 
-Reconstructions were performed in parallel for 
+Simulations were implemented in MATLAB.
 
-Describe farmshare scripts, approximate time for reconstruction
+Reconstructions were performed in parallel for different compression ratios and basis using the Barley machines on the Stanford Farmshare cluster. Each Barley machine is equipped with an AMD Magny Cours (24 cores each) and is shared across multiple users. The approximate time for reconstructing a $x \times y \times 10 \times 10$ lightfield using a particular basis is shown in Table 1.
+
+\begin{table}
+  \begin{center}
+  \begin{tabular}{|l|c|}
+  \hline
+  Basis & Reconstruction Time \\
+  \hline\hline
+  Fourier & Frumpy \\
+  DCT & Frobbly \\
+  Haar & Makes one's heart Frob\\
+  \hline
+  \end{tabular}
+  \end{center}
+  \caption{Reconstruction times for a single lightfield image using the Barley machines.}
+\end{table}
+
+
 We define the SNR as the energy in the original signal divided by the mean squared error of the reconstruction across all colour channels. 
 
 \[SNR = 20 \log_{10}{\frac{||x||_2}{||x_r - x||_2}}\] where $x$ is the original lightfield image, and $x_r$ is the reconstructed lightfield image and $|| \cdot ||_2$ is the $l2$ norm.
+
+We define the compression ratio as the number of measuremnts $M$ divided by the number of angular views \[ \eta = \frac{M}{N} = \frac{M}{n \times n}\]
 
 \section{Results}
 
