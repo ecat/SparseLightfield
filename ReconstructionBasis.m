@@ -7,6 +7,7 @@ classdef ReconstructionBasis
         FFT
         HAAR
         DCT
+        TV_PRIOR
         %WAVELET = {'HAAR','MORLET','SYMLET','MEXHAT'}   % 'haar','morl','sym','mexh'
     end
     
