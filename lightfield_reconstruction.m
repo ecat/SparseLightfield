@@ -6,7 +6,7 @@ function [ originalLightFieldImage reconstruction_results ] = lightfield_reconst
     parameters.filename = filename;
     parameters.angularLightFieldSize = 10;
     %parameters.angularViewResizeFactor = 6;
-    parameters.angularViewResizeFactor = 50;
+    parameters.angularViewResizeFactor = 8;
     parameters.brightnessScale = 4;
 
     lightFieldImage = LightFieldImage(parameters);
@@ -23,9 +23,10 @@ function [ originalLightFieldImage reconstruction_results ] = lightfield_reconst
         %display(sprintf('Performing reconstruction using %d measurements.', numMeasurements))
         reconParams = struct();
         reconParams.numMeasurements = numMeasurements(k);
-        reconParams.reconBasis = ReconstructionBasis.FFT;
+        %reconParams.reconBasis = ReconstructionBasis.FFT;
         %reconParams.reconBasis = ReconstructionBasis.HAAR;
         %reconParams.reconBasis = ReconstructionBasis.DCT;
+        reconParams.reconBasis = ReconstructionBasis.TV_PRIOR;
 
         [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, reconParams);
         reconstruction_results{k} = recoveredLightFieldResults;

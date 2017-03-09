@@ -15,6 +15,9 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
         reconBasis = reconParams.reconBasis;
     end   
     
+    display(sprintf('Performing reconstruction for %d measurements and basis', M) );
+    display(reconBasis);
+    
     %% perform CS reconstruction    
     t_reconstruction = tic;
 
@@ -41,25 +44,25 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
         sigma = 0.0;
         
         if(reconBasis == ReconstructionBasis.FFT || reconBasis == ReconstructionBasis.DCT)
-            [x r g info] = spg_bpdn(@AReconFourierBasis, vectorizeLightField(Y), sigma, bpOptions);
+            [x_rec r g info] = spg_bpdn(@AReconFourierBasis, vectorizeLightField(Y), sigma, bpOptions);
         elseif(reconBasis == ReconstructionBasis.HAAR)
-            [x r g info] = spg_bpdn(@AReconWaveletBasis, vectorizeLightField(Y), sigma, bpOptions);
+            [x_rec r g info] = spg_bpdn(@AReconWaveletBasis, vectorizeLightField(Y), sigma, bpOptions);
         elseif(reconBasis == ReconstructionBasis.TV_PRIOR)
             lambda = 0.1;
-            [x] = reconSparseGradients(Y, lambda);
+            [recoveredLightFieldSingleChannel] = reconSparseGradients(Y, lambda);
         else
             assert(false)
         end
         
         if(reconBasis == ReconstructionBasis.FFT || reconBasis == ReconstructionBasis.DCT)
             % reformat x into angular light fields
-            recoveredLightFieldSingleChannel = reshape(x, [lightFieldImage.imageHeight, lightFieldImage.imageWidth, ...
+            recoveredLightFieldSingleChannel = reshape(x_rec, [lightFieldImage.imageHeight, lightFieldImage.imageWidth, ...
                 lightFieldImage.angularLightFieldSize, lightFieldImage.angularLightFieldSize]);
             
             % take inverse fft of recovered solution
             recoveredLightFieldSingleChannel = inverseBasisOperator(recoveredLightFieldSingleChannel);
         elseif(reconBasis == ReconstructionBasis.HAAR)
-            recoveredLightFieldSingleChannelSparse = reshape(x, [lightFieldImage.imageHeight, lightFieldImage.imageWidth, ...
+            recoveredLightFieldSingleChannelSparse = reshape(x_rec, [lightFieldImage.imageHeight, lightFieldImage.imageWidth, ...
                 lightFieldImage.angularLightFieldSize/2, lightFieldImage.angularLightFieldSize/2, 4]);           
             recoveredLightFieldSingleChannel = backwardWaveletOperator(recoveredLightFieldSingleChannelSparse);
         elseif(reconBasis == ReconstructionBasis.TV_PRIOR)
@@ -90,68 +93,73 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
     return
     
     %%%%%%% Declare private functions %%%%%%%%%%%%%%%%    
-    function y = reconSparseGradients(lightFieldSingleChannel)
+    function y = reconSparseGradients(measuredLightField, lambda)        
         rho = 10;
         kappa = lambda/rho;
         option_fs.filterstrength = sqrt(kappa);
+        size_y = lightFieldImage.imageHeight;
+        size_x = lightFieldImage.imageWidth;
+        size_v = lightFieldImage.angularLightFieldSize;
+        size_u = lightFieldImage.angularLightFieldSize;
+        imageResolution = [size_v size_u];
         
         % define function handle for image formation
-% please go over them and understand what they do
-Afun    = @(x) squeeze(sum(sum(masks .* repmat(x, [1 1 M]),1),2) );
-% dimension: size_y*size_x to M*1
-Atfun   = @(x) sum(repmat(reshape(x, [1 1 M]), [size_y size_x 1]).*masks, 3);
-% dimension: M*1 to size_y*size_x
-AAtfun  = @(x) reshape(Afun(Atfun(x)), [M 1]);
-% dimension: M*1 to M*1 
-AtAfun = @(x) Atfun(Afun(reshape(x,imageResolution)));
-% dimension: size_y*size_x to size_y*size_x
-optDtDx = @(x) opDtx(opDx(reshape(x,imageResolution)));
-% dimentsion: size_y*size_x to size_y*size_x
+        % dimension: size_y*size_x to M*1
+        Afun    = @(x) squeeze(sum(sum(masks .* repmat(x, [1 1 M]),1),2) );
 
-   %initialize x, z,u;
-        x = zeros(imageResolution);
-        z = zeros(size_y,size_x,2);
-        u = zeros(size_y,size_x,2);
-        y = zeros(size(lightFieldSingleChannel));
- 
- 
-for du = 1:size_u
-    for dv = 1:size_v
-         b = Afun(squeeze(lightFieldSingleChannel(:,:,du,dv)));
-        for k = 1:25
-            % update x
-            v = z-u;
-            v1 = v(:,:,1);
-            v2 = v(:,:,2);
-            ImageSize = size_y*size_x;
-            pcg_term1 = @(x) reshape(AtAfun(x) + rho.*optDtDx(x),[ImageSize 1]);
-   
-            pcg_term2 = @(v) reshape(Atfun(b) + rho.*opDtx(v), [ImageSize 1]);
-     
-            x = pcg(pcg_term1,pcg_term2(v),1e-10,50);
-            x = reshape(x,imageResolution);
-                        
-            % update z
-            v = opDx(x) + u;
-            
-            first_case = v > kappa;
-            z1 = first_case.*(v-kappa);
-            second_case = abs(v) <= kappa;
-            z2 = second_case.*0;
-            third_case = v < -kappa;
-            z3 = third_case.*(v+kappa);
-            z = z1+z2+z3;
-            
-            % update u
-            u = u + opDx(x) -z;
-          
-        end
-        y(:,:,du,dv) = x;
-    end
-end
-end
+        % dimension: M*1 to size_y*size_x
+        Atfun   = @(x) sum(repmat(reshape(x, [1 1 M]), [size_v size_u 1]).*masks, 3);
+
+        % dimension: size_y*size_x to size_y*size_x        
+        AtAfun = @(x) Atfun(Afun(reshape(x,imageResolution)));
+
+        % dimension: size_y*size_x to size_y*size_x        
+        optDtDx = @(x) opDtx(opDx(reshape(x,imageResolution)));
+
         
+        %initialize x, z, u;
+        x = zeros(imageResolution);
+        z = zeros(size_v,size_u,2);
+        u = zeros(size_v,size_u,2);
+        y = zeros([size_y, size_x, size_v, size_u]);
+        
+        
+        for dy = 1:size_y
+            for dx = 1:size_x
+                b = squeeze(measuredLightField(dy,dx,:,:));
+                for iterations = 1:25
+                    % update x
+                    v = z-u;
+                    v1 = v(:,:,1);
+                    v2 = v(:,:,2);
+                    imageSize = size_v * size_u;
+                    pcg_term1 = @(x) reshape(AtAfun(x) + rho.*optDtDx(x),[imageSize 1]);
+                    
+                    pcg_term2 = @(v) reshape(Atfun(b) + rho.*opDtx(v), [imageSize 1]);
+                    
+                    [x, trash] = pcg(pcg_term1,pcg_term2(v),1e-10,50); % trash is to suppress output
+                    x = reshape(x,imageResolution);
+                    
+                    % update z
+                    v = opDx(x) + u;
+                    
+                    first_case = v > kappa;
+                    z1 = first_case.*(v-kappa);
+                    second_case = abs(v) <= kappa;
+                    z2 = second_case.*0;
+                    third_case = v < -kappa;
+                    z3 = third_case.*(v+kappa);
+                    z = z1+z2+z3;
+                    
+                    % update u
+                    u = u + opDx(x) -z;
+                    
+                end
+                y(dy,dx,:,:) = x;
+            end
+        end
     end
+
     
     function y = forwardWaveletOperator(lightFieldSingleChannel)
         imageWidth = lightFieldImage.imageWidth;
