@@ -86,16 +86,17 @@ classdef LightFieldImage
                         offsetY = (obj.microlensSize -  obj.angularLightFieldSize)/2;                
                         originalImage = squeeze(mLightField(:, :, ky + offsetY, kx + offsetX, :));
 
-                        %resizedImage = imresize(originalImage, [mImageHeight, mImageWidth], 'bilinear');
+                        % resize image
+                        resizedImage = imresize(originalImage, [mImageHeight, mImageWidth], 'bilinear');
                         
-                        % center crop the original iamge as opposed to
-                        % resizing
-                        [originalImageHeight originalImageWidth channels] = size(originalImage);
-                        topY = round(originalImageHeight/2 - mImageHeight/2);
-                        bottomY = topY + mImageHeight - 1;
-                        leftX = round(originalImageWidth/2 - mImageWidth/2);
-                        rightX = leftX + mImageWidth - 1;                        
-                        resizedImage = originalImage(topY:bottomY, leftX:rightX, :);
+                        % alternatively can center crop the original image as opposed to
+%                         % resizing
+%                         [originalImageHeight originalImageWidth channels] = size(originalImage);
+%                         topY = round(originalImageHeight/2 - mImageHeight/2);
+%                         bottomY = topY + mImageHeight - 1;
+%                         leftX = round(originalImageWidth/2 - mImageWidth/2);
+%                         rightX = leftX + mImageWidth - 1;                        
+%                         resizedImage = originalImage(topY:bottomY, leftX:rightX, :);
                         
                         downsampledLightField(:, :, ky, kx, :) = ...
                             resizedImage;

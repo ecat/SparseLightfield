@@ -82,6 +82,8 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
     recoveredLightFieldResults.numAngularViews = lightFieldImage.angularLightFieldSize.^2;
     recoveredLightFieldResults.reconBasis = reconBasis;
     recoveredLightFieldResults.fractionOfMeasurements = M/(lightFieldImage.angularLightFieldSize.^2);
+    recoveredLightFieldResults.angularImageWidth = lightFieldImage.imageWidth;
+    recoveredLightFieldResults.angularImageHeight = lightFieldImage.imageHeight;
     
     return
     
