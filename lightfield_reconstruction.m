@@ -5,14 +5,16 @@ function [ originalLightFieldImage, reconstruction_results ] = lightfield_recons
     %% load image
     parameters.filename = filename;
     parameters.angularLightFieldSize = 10;
-    parameters.angularViewResizeFactor = 5;
+    parameters.angularViewResizeFactor = 8;
     parameters.brightnessScale = 4;
 
     lightFieldImage = LightFieldImage(parameters);
 
     %% perform cs reconstruction over different parameters
     sweepTimer = tic;
-    numMeasurements = [2 4 8 12 16 22 24 26 28 32 36 40];
+
+    numMeasurements = 8;%[2 4 8 12 16 22 24 26 28 32 36 40];
+
     
     reconstruction_results = cell(numel(numMeasurements), 1);
     
@@ -25,6 +27,8 @@ function [ originalLightFieldImage, reconstruction_results ] = lightfield_recons
         reconParams.reconBasis = ReconstructionBasis.FFT;
         %reconParams.reconBasis = ReconstructionBasis.HAAR;
         %reconParams.reconBasis = ReconstructionBasis.DCT;
+        reconParams.reconBasis = ReconstructionBasis.TV_PRIOR;
+
 
         [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, reconParams);
         recoveredLightFieldResults.filename = filename;
