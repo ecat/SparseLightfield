@@ -4,8 +4,8 @@ function [ originalLightFieldImage, reconstruction_results ] = lightfield_recons
 
     %% load image
     parameters.filename = filename;
-    parameters.angularLightFieldSize = 10;
-    parameters.angularViewResizeFactor = 8;
+    parameters.angularLightFieldSize = 14;
+    parameters.angularViewResizeFactor = 4;
     parameters.brightnessScale = 4;
 
     lightFieldImage = LightFieldImage(parameters);
@@ -13,13 +13,13 @@ function [ originalLightFieldImage, reconstruction_results ] = lightfield_recons
     %% perform cs reconstruction over different parameters
     sweepTimer = tic;
 
-    numMeasurements = 8;%[2 4 8 12 16 22 24 26 28 32 36 40];
+    numMeasurements = [2 20 40 60 80];%[2 4 8 12 16 22 24 26 28 32 36 40];
 
     
     reconstruction_results = cell(numel(numMeasurements), 1);
     
     % on corn default is 12 threads
-    parfor k = 1: numel(numMeasurements);
+    parfor k = 1: numel(numMeasurements)
     %for k = 1: numel(numMeasurements)
         %display(sprintf('Performing reconstruction using %d measurements.', numMeasurements))
         reconParams = struct();
