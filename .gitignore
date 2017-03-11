@@ -3,4 +3,5 @@
 *.asv
 *~
 farmshare_run/run*
+farmshare_run/fft_*
 *.pdf

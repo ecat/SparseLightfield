@@ -2,11 +2,6 @@ http://lightfields.stanford.edu/images/flowers_plants/raw/flowers_plants_1_eslf.
 http://lightfields.stanford.edu/images/flowers_plants/raw/flowers_plants_6_eslf.png
 http://lightfields.stanford.edu/images/flowers_plants/raw/flowers_plants_11_eslf.png
 http://lightfields.stanford.edu/images/flowers_plants/raw/flowers_plants_16_eslf.png
-http://lightfields.stanford.edu/images/flowers_plants/raw/flowers_plants_21_eslf.png
-http://lightfields.stanford.edu/images/flowers_plants/raw/flowers_plants_26_eslf.png
-http://lightfields.stanford.edu/images/flowers_plants/raw/flowers_plants_38_eslf.png
-http://lightfields.stanford.edu/images/flowers_plants/raw/flowers_plants_46_eslf.png
-http://lightfields.stanford.edu/images/flowers_plants/raw/flowers_plants_46_eslf.png
 http://lightfields.stanford.edu/images/bikes/raw/bikes_5_eslf.png
 http://lightfields.stanford.edu/images/bikes/raw/bikes_15_eslf.png
 http://lightfields.stanford.edu/images/bikes/raw/bikes_17_eslf.png
@@ -23,9 +18,7 @@ http://lightfields.stanford.edu/images/buildings/raw/buildings_8_eslf.png
 http://lightfields.stanford.edu/images/buildings/raw/buildings_12_eslf.png
 http://lightfields.stanford.edu/images/people/raw/people_8_eslf.png
 http://lightfields.stanford.edu/images/people/raw/people_14_eslf.png
-http://lightfields.stanford.edu/images/reflective/raw/reflective_1_eslf.png
 http://lightfields.stanford.edu/images/reflective/raw/reflective_11_eslf.png
 http://lightfields.stanford.edu/images/reflective/raw/reflective_14_eslf.png
 http://lightfields.stanford.edu/images/fruits_vegetables/raw/fruits_vegetables_4_eslf.png
 http://lightfields.stanford.edu/images/fruits_vegetables/raw/fruits_vegetables_7_eslf.png
-http://lightfields.stanford.edu/images/fruits_vegetables/raw/fruits_vegetables_17_eslf.png
