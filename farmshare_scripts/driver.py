@@ -56,7 +56,7 @@ save('farmshare_run/run%d/reconstructionResults.mat', 'reconstructionResults')
 #$ -e farmshare_run/run%d/job.error
 #$ -cwd
 #$ -S /bin/bash
-#$ -pe shm 12
+#$ -pe shm 6
 
 module load matlab
 matlab -nodesktop < farmshare_run/run%d/run.m

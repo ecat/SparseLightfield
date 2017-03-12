@@ -13,7 +13,7 @@ function [ originalLightFieldImage, reconstruction_results ] = lightfield_recons
     %% perform cs reconstruction over different parameters
     sweepTimer = tic;
 
-    numMeasurements = [2 20 40 60 80];%[2 4 8 12 16 22 24 26 28 32 36 40];
+    numMeasurements = [2 20 40 60];%[2 4 8 12 16 22 24 26 28 32 36 40];
 
     
     reconstruction_results = cell(numel(numMeasurements), 1);
@@ -24,10 +24,10 @@ function [ originalLightFieldImage, reconstruction_results ] = lightfield_recons
         %display(sprintf('Performing reconstruction using %d measurements.', numMeasurements))
         reconParams = struct();
         reconParams.numMeasurements = numMeasurements(k);
-        reconParams.reconBasis = ReconstructionBasis.FFT;
+        %reconParams.reconBasis = ReconstructionBasis.FFT;
         %reconParams.reconBasis = ReconstructionBasis.HAAR;
         %reconParams.reconBasis = ReconstructionBasis.DCT;
-        %reconParams.reconBasis = ReconstructionBasis.TV_PRIOR;
+        reconParams.reconBasis = ReconstructionBasis.TV_PRIOR;
 
 
         [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, reconParams);
