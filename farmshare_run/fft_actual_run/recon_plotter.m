@@ -3,14 +3,15 @@ clear all; close all;
 
 %% load data
 
-folder_indices_with_results = [0:1];
+folder_indices_with_results = [0:23];
 num_images = numel(folder_indices_with_results);
 runtimesSeconds = zeros(num_images, 1);
+filenames = cell(num_images, 1);
 
 for i = 1:num_images
     % loads data into a struct called reconstructionResults
     load(sprintf('run%d/reconstructionResults.mat', folder_indices_with_results(i)));
-    
+    filenames{i} = reconstructionResults{1}.filename;
    
     % lazy init
     if(i == 1)
@@ -35,6 +36,14 @@ for i = 1:num_images
         runtimesSeconds(i) = runtimesSeconds(i) + reconstructionResults{k}.reconstructionTime;
     end
 end
+
+%% find index of worst and best
+[worst_snr worst_index] = min(squeeze(SNR_array(:, 1)));
+worst_filename = filenames{worst_index}
+
+% print the filenames of those
+[best_snr best_index] = max(squeeze(SNR_array(:, 1)));
+best_filename = filenames{best_index}
 
 %% plot data
 close all;

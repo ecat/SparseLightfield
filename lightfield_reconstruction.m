@@ -25,9 +25,9 @@ function [ originalLightFieldImage, reconstruction_results ] = lightfield_recons
         reconParams = struct();
         reconParams.numMeasurements = numMeasurements(k);
         %reconParams.reconBasis = ReconstructionBasis.FFT;
-        %reconParams.reconBasis = ReconstructionBasis.HAAR;
+        reconParams.reconBasis = ReconstructionBasis.HAAR;
         %reconParams.reconBasis = ReconstructionBasis.DCT;
-        reconParams.reconBasis = ReconstructionBasis.TV_PRIOR;
+        %reconParams.reconBasis = ReconstructionBasis.TV_PRIOR;
 
 
         [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, reconParams);
