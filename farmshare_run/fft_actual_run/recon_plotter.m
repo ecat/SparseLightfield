@@ -1,5 +1,5 @@
 % plotter for fft_actual_run
-clear all; close all;
+%clear all; close all;
 
 %% load data
 
@@ -46,12 +46,10 @@ worst_filename = filenames{worst_index}
 best_filename = filenames{best_index}
 
 %% plot data
-close all;
-
 SNR_averages = mean(SNR_array, 1);
 SNR_stdev = sqrt(var(SNR_array));
 figure;
 errorbar(percent_num_measurements, SNR_averages, SNR_stdev);
-title(['SNR Average for ' char(reconstructionResults{1}.reconBasis)])
+title(['SNR Average for fft'])
 ylim([0 40])
 grid on;

@@ -38,6 +38,8 @@ display('Doing reconstruction')
 display('Deleting lightfield image')
 system('%s')
 
+display('done running parfor')
+
 %% print results to a file
 save('farmshare_run/run%d/reconstructionResults.mat', 'reconstructionResults')
 	'''% (curl_command, n, filename, delete_command, n)
@@ -56,7 +58,7 @@ save('farmshare_run/run%d/reconstructionResults.mat', 'reconstructionResults')
 #$ -e farmshare_run/run%d/job.error
 #$ -cwd
 #$ -S /bin/bash
-#$ -pe shm 6
+#$ -pe shm 4
 
 module load matlab
 matlab -nodesktop < farmshare_run/run%d/run.m
@@ -66,4 +68,4 @@ matlab -nodesktop < farmshare_run/run%d/run.m
         qsubfile.write(qsubscript)
         qsubfile.close()
 
-        os.system('qsub farmshare_run/run%d/run.submit' % n)
+        os.system('qsub -l h_rt=36:00:00 farmshare_run/run%d/run.submit' % n)

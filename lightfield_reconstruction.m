@@ -5,7 +5,7 @@ function [ originalLightFieldImage, reconstruction_results ] = lightfield_recons
     %% load image
     parameters.filename = filename;
     parameters.angularLightFieldSize = 10;
-    parameters.angularViewResizeFactor = 6;
+    parameters.angularViewResizeFactor = 8;
     parameters.brightnessScale = 4;
 
     lightFieldImage = LightFieldImage(parameters);

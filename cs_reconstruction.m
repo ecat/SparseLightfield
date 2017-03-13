@@ -38,7 +38,7 @@ function [recoveredLightFieldResults] = cs_reconstruction(lightFieldImage, recon
         % specify parameters for bpdn
         bpOptions = struct();
         bpOptions.iterations = 1500;
-        bpOptions.verbosity = 0;
+        bpOptions.verbosity = 1;
         
         % solve reconstruction
         sigma = 0.0;
