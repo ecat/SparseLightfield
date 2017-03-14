@@ -89,23 +89,74 @@ end
 
 legend(experiments);
 
-%% plot composite images figure, first plot the worst image
-figure;
-image_index = 5;
-u_index = 5;
-v_index = 5;
-for basis_index = 1:numel(experiments)
-    experiment = experiments{basis_index};
-    case_to_plot = all_results(experiment);
-    
-    % load the experiment
-    load(sprintf('farmshare_run/%s/run%d/reconstructionResults.mat', experiment, image_index));
-        
-    for compression_index = 1:4
-        subplot_index = compression_index + 4 * (basis_index-1);
-        subplot(numel(experiments), 4, subplot_index)
-        imshow(squeeze( ...
-            real(reconstructionResults{compression_index}.recoveredLightField(:, :, v_index, u_index, :))));
+%% plot composite images figure, first plot the worst image at index 22
+% best image is at index 6
+% second worse image is at index 12
+for image_index = [6 12 22]
+    figure;
+    run_index = image_index - 1;
+    u_index = 5;
+    v_index = 5;
+    for basis_index = 1:numel(experiments)
+        experiment = experiments{basis_index};
+        case_to_plot = all_results(experiment);
 
+        % load the experiment
+        load(sprintf('farmshare_run/%s/run%d/reconstructionResults.mat', experiment, run_index));
+
+        for compression_index = 1:4
+            subplot_index = compression_index + 4 * (basis_index-1);
+            subplot(numel(experiments), 4, subplot_index)
+            imshow(squeeze( ...
+                real(reconstructionResults{compression_index}.recoveredLightField(:, :, v_index, u_index, :))));
+
+        end
+    end
+end
+
+%% show sparsity in angular domain
+%% load image
+parameters.filename = 'occlusions_15_eslf.png';
+parameters.angularLightFieldSize = 10;
+parameters.angularViewResizeFactor = 6;
+parameters.brightnessScale = 4;
+
+lightFieldImage = LightFieldImage(parameters);
+
+% put x indices in normalized coordinates
+x_indices = [0.5:0.02:0.6];
+y_indices = [0.5];
+for image_index = [13]
+    figure;
+    run_index = image_index - 1;
+
+    for basis_index = 1:numel(experiments) + 1
+
+        % load the experiment
+        if(basis_index > numel(experiments))
+            recoveredLightField = lightFieldImage.lightField;
+        else
+            experiment = experiments{basis_index};
+            load(sprintf('farmshare_run/%s/run%d/reconstructionResults.mat', experiment, run_index));
+            compression_index = 1;
+            display(reconstructionResults{1}.reconBasis);
+            display(reconstructionResults{1}.SNR);
+            
+            recoveredLightField = reconstructionResults{compression_index}.recoveredLightField;
+        end
+
+        for k = 1:numel(x_indices)
+            lfSize = size(recoveredLightField);
+            image_width = lfSize(2);
+            image_height = lfSize(1);
+            x_index = round(x_indices(k) * image_width);
+            y_index = round(y_indices(k) * image_height);
+            
+            subplot_index = k + numel(x_indices) * (basis_index-1);
+            subplot(numel(experiments) + 1, numel(x_indices), subplot_index)
+            imshow(squeeze( ...
+                real(recoveredLightField(x_index, y_index, :, :, :))));
+
+        end
     end
 end
