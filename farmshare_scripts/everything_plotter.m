@@ -1,8 +1,9 @@
-% plotter for fft_actual_run
-%clear all; close all;
+%% plotter for everything
+clear all; close all;
 
 %% load data
 experiments = {'dct_actual_run', 'fft_actual_run', 'tv_actual_lambda_0point1'};
+legend_titles = {'DCT', 'FFT', 'TV \lambda = 0.1'};
 % create structo to hold all results
 all_results = containers.Map();
 
@@ -87,7 +88,7 @@ for k = 1:numel(experiments)
     grid on;
 end
 
-legend(experiments);
+legend(legend_titles);
 
 %% plot composite images figure, first plot the worst image at index 22
 % best image is at index 6
@@ -116,17 +117,27 @@ end
 
 %% show sparsity in angular domain
 %% load image
-parameters.filename = 'occlusions_15_eslf.png';
-parameters.angularLightFieldSize = 10;
-parameters.angularViewResizeFactor = 6;
-parameters.brightnessScale = 4;
 
-lightFieldImage = LightFieldImage(parameters);
+
+image_original_filenames = {'occlusions_15_eslf.png', 'flowers_plants_6_eslf.png'};
 
 % put x indices in normalized coordinates
-x_indices = [0.5:0.02:0.6];
-y_indices = [0.5];
-for image_index = [13]
+x_indices_cell = {[0.5:0.02:0.6], [0.5:0.03:0.65]};
+y_indices_cell = {[0.5], [0.7]};
+image_indices = [13, 2];
+for mm = 1:numel(image_indices)
+    
+    x_indices = x_indices_cell{mm};
+    y_indices = y_indices_cell{mm};
+    
+    image_index = image_indices(mm);
+    parameters.filename = image_original_filenames{mm};
+    parameters.angularLightFieldSize = 10;
+    parameters.angularViewResizeFactor = 6;
+    parameters.brightnessScale = 4;
+
+    lightFieldImage = LightFieldImage(parameters);
+    
     figure;
     run_index = image_index - 1;
 
@@ -150,7 +161,7 @@ for image_index = [13]
             image_width = lfSize(2);
             image_height = lfSize(1);
             x_index = round(x_indices(k) * image_width);
-            y_index = round(y_indices(k) * image_height);
+            y_index = round(y_indices * image_height);
             
             subplot_index = k + numel(x_indices) * (basis_index-1);
             subplot(numel(experiments) + 1, numel(x_indices), subplot_index)
