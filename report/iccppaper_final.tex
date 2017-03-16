@@ -57,9 +57,7 @@ In order to achieve the best reconstruction using compressive sensing, it is des
 
 \section{Background}
 
-In the background, we present the basic notation and mathematics for lightfields and compressed sensing.
-
-\subsection{Lightfields}
+In the background, we present the basic mathematics for compressed sensing and recovery using the total variance prior.
 
 \subsection{Compressed Sensing}
 
@@ -71,7 +69,7 @@ can be recovered using a smaller vector $y \in \mathbb{R}^M, M < K < N$, where $
 
 \[ y = \Psi x, \quad \Psi \in \mathbb{R}^{M \times N}\]
 
-$\Psi$ is known as the sensing matrix. The vector $x$ can be recovered as $\hat{x}$ if $M$ is large enough ($M \sim K\log(N/K)$) by finding the optimum solution for 
+$\Psi$ is known as the sensing matrix. There are many ways to generate $\Psi$ that would allow for sparse recovery using a limited number of measurements. One such method is to use a $\Psi$ whose elements are drawn from a Gaussian or Bernoulli distribution, but this choice is determined by the physical limitations of the problem \cite{Rauhut11}. The vector $x$ can be recovered as $\hat{x}$ if $M$ is large enough ($M \sim K\log(N/K)$) by finding the optimum solution for 
 
 \[ \hat{\theta} = \argmin_\theta ||\theta||_0 \quad s.t. \quad \Psi\Phi\theta = y\]
 
@@ -111,30 +109,38 @@ and the lightfield is recovered using
 
 To solve the BP problem, it is convenient to let the matrix $A = \Psi\Phi$. We can now define the adjoint operator as $A' = \Phi'\Psi'$ where the $'$ denotes the transpose. Since $\Phi$ is orthonormal, $\Phi'\Phi = I$, so $\Phi'$ is the inverse of the basis operator. 
 
+\subsection{Total Variation Prior}
+
+Unlike compressed sensing which assumes sparsity in some orthogonal basis, Total Variation (TV) assumes sparsity in the gradients of the image. This is achieved by minimizing the following cost function
+
+\[ \hat{x} = \argmin_x ||Ax - b||^2_2 + \lambda ||D x||_1 \]
+
+Where $D$ is the gradient operator and $\lambda$ is a parameter that can be chosen. A larger choice of $\lambda$ will reduce the amount of edges in the image. $A$ is similar to the sensing matrix presented above and constitutes the masks used to generate the measurements $b$.
+
 \section{Methods}
 
 
-50 images were chosen at random from the nine different categories of the Stanford Lytro Light Field Archive \footnote{Available: \url{lightfields.stanford.edu}}. Lytro images have a native resolution of $4 \times 4$ pixels, and consist of $14 \times 14$ angular views over the RGB colour channels. Each angular view for the raw Lytro image is $4 \times 4$. Our simulations reduced the resolution of each angular view by a factor of $8$ using bilinear interpolation in order to reduce reconstruction time. Only the center $10 \times 10$ angular views of each image were considered for the simulation as the microlens array in the Lytro camera causes pixels at the edge to be obscured.
+24 images were chosen at random from the Stanford Lytro Light Field Archive \footnote{Available: \url{lightfields.stanford.edu}}. Images captured using the Lytro Illum camera have a raw resolution of $7574 \times 5264$ pixels, and has $14 \times 14$ angular views over the RGB colour channels. Each angular view has a resolution of $541 \times 376$. Our simulations reduced the resolution of each angular view by a factor of $6$ using bilinear interpolation in order to reduce reconstruction time. Only the center $10 \times 10$ angular views of each image were considered for the simulation as the microlens array in the Lytro camera causes pixels at the edge to be obscured.
 
-The sensing matrix was created by for multiple compression factors
+The sensing matrix was created for multiple compression factors by drawing the elements from a Uniform distribution \cite{Rauhut11}. The uniform distribution is a good approximation for random attenuation masks.
 
-The sparse reconstruction was solved using SPGL1\footnote{\url{http://www.cs.ubc.ca/~mpf/spgl1/}} \cite{BasisPursuit1}\cite{BasisPursuit2}. Approximately $1500$ iterations was sufficient to converge on the solution.
+The sparse reconstruction was solved using SPGL1\footnote{\url{http://www.cs.ubc.ca/~mpf/spgl1/}} \cite{BasisPursuit1}\cite{BasisPursuit2}. We used the Basis Pursuit solver for the recovery. $1500$ iterations was sufficient to converge on the solution.
 
-The reconstruction was performed using the following orthonormal basis: DCT, Fourier, Haar Wavelets, and Debauche Wavelets.
+The reconstruction was performed using the following orthonormal basis: DCT, Fourier, and Haar Wavelets, and by minimizing the TV cost function.
 
-Simulations were implemented in MATLAB.
 
-Reconstructions were performed in parallel for different compression ratios and basis using the Barley machines on the Stanford Farmshare cluster. Each Barley machine is equipped with an AMD Magny Cours (24 cores each) and is shared across multiple users. The approximate time for reconstructing a $x \times y \times 10 \times 10$ lightfield using a particular basis is shown in Table 1.
+Reconstructions were performed in parallel for different compression ratios and basis using the Barley machines on the Stanford Farmshare cluster. Each Barley machine is equipped with an AMD Magny Cours (24 cores each) and is shared across multiple users. The approximate time for reconstructing a $90 \times 63 \times 10 \times 10$ lightfield using a particular reconstruction method is shown in Table 1.
 
 \begin{table}
   \begin{center}
   \begin{tabular}{|l|c|}
   \hline
-  Basis & Reconstruction Time \\
+  Basis & Reconstruction Time (hours)\\
   \hline\hline
-  Fourier & Frumpy \\
-  DCT & Frobbly \\
-  Haar & Makes one's heart Frob\\
+  Fourier & 12.3 \\
+  DCT & 12.4 \\
+  Haar & 16.8\\
+  TV Prior & 5.1\\ 
   \hline
   \end{tabular}
   \end{center}
@@ -152,6 +158,27 @@ We define the compression ratio as the number of measuremnts $M$ divided by the 
 
 SNR graphs for different compression basis
 Select images
+
+\begin{figure}[t]
+\begin{center}
+\fbox{\rule{0pt}{2in} \rule{0.9\linewidth}{0pt}}
+ \includegraphics[width=0.8\linewidth]{img/patches.png}
+\end{center}
+   \caption{Example of caption.  It is set in Roman so that mathematics
+   (always set in Roman: $B \sin A = A \sin B$) may be included without an
+   ugly clash.}
+\end{figure}
+
+
+\begin{figure}[t]
+\begin{center}
+\fbox{\rule{0pt}{2in} \rule{0.9\linewidth}{0pt}}
+ \includegraphics[width=0.8\linewidth]{img/cs_framework.png}
+\end{center}
+   \caption{Example of caption.  It is set in Roman so that mathematics
+   (always set in Roman: $B \sin A = A \sin B$) may be included without an
+   ugly clash.}
+\end{figure}
 
 \section{Discussion}
 
