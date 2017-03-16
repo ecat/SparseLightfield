@@ -122,7 +122,10 @@ Where $D$ is the gradient operator and $\lambda$ is a parameter that can be chos
 
 24 images were chosen at random from the Stanford Lytro Light Field Archive \footnote{Available: \url{lightfields.stanford.edu}}. Images captured using the Lytro Illum camera have a raw resolution of $7574 \times 5264$ pixels, and has $14 \times 14$ angular views over the RGB colour channels. Each angular view has a resolution of $541 \times 376$. Our simulations reduced the resolution of each angular view by a factor of $6$ using bilinear interpolation in order to reduce reconstruction time. Only the center $10 \times 10$ angular views of each image were considered for the simulation as the microlens array in the Lytro camera causes pixels at the edge to be obscured.
 
-The sensing matrix was created for multiple compression factors by drawing the elements from a Uniform distribution \cite{Rauhut11}. The uniform distribution is a good approximation for random attenuation masks.
+
+We define the compression ratio as the number of measurements $M$ divided by the number of angular views \[ \eta = \frac{M}{N} = \frac{M}{n \times n}\]
+
+The sensing matrix was created for multiple compression factors by drawing the elements from a Uniform distribution \cite{Rauhut11}. The uniform distribution is a simulation of random attenuation masks placed in front of the lytro camera. The reconstructions were performed for compression factors of $0.02, 0.20, 0.40, 0.60$.
 
 The sparse reconstruction was solved using SPGL1\footnote{\url{http://www.cs.ubc.ca/~mpf/spgl1/}} \cite{BasisPursuit1}\cite{BasisPursuit2}. We used the Basis Pursuit solver for the recovery. $1500$ iterations was sufficient to converge on the solution.
 
@@ -152,35 +155,44 @@ We define the SNR as the energy in the original signal divided by the mean squar
 
 \[SNR = 20 \log_{10}{\frac{||x||_2}{||x_r - x||_2}}\] where $x$ is the original lightfield image, and $x_r$ is the reconstructed lightfield image and $|| \cdot ||_2$ is the $l2$ norm.
 
-We define the compression ratio as the number of measuremnts $M$ divided by the number of angular views \[ \eta = \frac{M}{N} = \frac{M}{n \times n}\]
 
 \section{Results}
 
-SNR graphs for different compression basis
-Select images
 
 \begin{figure}[t]
 \begin{center}
-\fbox{\rule{0pt}{2in} \rule{0.9\linewidth}{0pt}}
- \includegraphics[width=0.8\linewidth]{img/patches.png}
+ \includegraphics[width=0.95\linewidth, trim={0.5cm 0cm 1cm 1.2cm} ,clip]{img/patches.png}
 \end{center}
-   \caption{Example of caption.  It is set in Roman so that mathematics
-   (always set in Roman: $B \sin A = A \sin B$) may be included without an
-   ugly clash.}
+   \caption{}
 \end{figure}
 
 
 \begin{figure}[t]
 \begin{center}
-\fbox{\rule{0pt}{2in} \rule{0.9\linewidth}{0pt}}
- \includegraphics[width=0.8\linewidth]{img/cs_framework.png}
+ \includegraphics[width=0.95\linewidth, trim={0.3cm 0cm 0.2cm 0.3cm} ,clip]{img/cs_framework.png}
 \end{center}
-   \caption{Example of caption.  It is set in Roman so that mathematics
-   (always set in Roman: $B \sin A = A \sin B$) may be included without an
-   ugly clash.}
+   \caption{}
+\end{figure}
+
+
+\begin{figure}[t]
+\begin{center}
+ \includegraphics[width=0.95\linewidth, trim={1cm 1cm 1cm 1cm} ,clip]{img/snr_average.png}
+\end{center}
+   \caption{}
+\end{figure}
+
+
+\begin{figure}[t]
+\begin{center}
+ \includegraphics[width=0.95\linewidth]{img/example_images.png}
+\end{center}
+   \caption{}
 \end{figure}
 
 \section{Discussion}
+
+\section{Future Work}
 
 \section{Conclusion}
 
