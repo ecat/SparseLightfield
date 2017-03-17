@@ -113,6 +113,15 @@ To solve the BP problem, it is convenient to let the matrix $A = \Psi\Phi$. We c
 
 The above formulation can also be recast using the framework presented in \cite{GordonArticle2}, but this is not presented in this work.
 
+Figure 1 is a digaram of the physical implementation of our experiment, showing lightfield capture with a microlens array compared to a random attenuation mask in front of the main lens. Different attenuation masks would be used to capture multiple random projections.
+
+\begin{figure}[t]
+\begin{center}
+ \includegraphics[width=0.95\linewidth, trim={0cm 0cm 0cm 0cm} ,clip]{img/microlens_array.png}
+\end{center}
+   \caption{Pictoral diagram of a lightfield as seen through a microlens array. Each microlens allows different pixels to see the scene from a different angular perspective.}
+\end{figure}
+
 \subsection{Total Variation Prior}
 
 Unlike compressed sensing which assumes sparsity in some orthogonal basis, Total Variation (TV) assumes sparsity in the gradients of the image. This is achieved by minimizing the following cost function
@@ -123,7 +132,6 @@ Where $D$ is the gradient operator and $\lambda$ is a parameter that can be chos
 
 \section{Methods}
 
-
 24 images were chosen at random from the Stanford Lytro Light Field Archive \footnote{Available: \url{lightfields.stanford.edu}}. Images captured using the Lytro Illum camera have a raw resolution of $7574 \times 5264$ pixels, and has $14 \times 14$ angular views over the RGB colour channels. Each angular view has a resolution of $541 \times 376$. Our simulations reduced the resolution of each angular view by a factor of $6$ using bilinear interpolation in order to reduce reconstruction time. Only the center $10 \times 10$ angular views of each image were considered for the simulation as the microlens array in the Lytro camera causes pixels at the edge to be obscured. As reported in \cite{mainP1}, we observed a higher SNR as the number of center views was decreased, due to the decrease in self-similarity as the point of view moves further from the center of the scene.
 
 
@@ -131,17 +139,17 @@ We define the compression ratio as the number of measurements $M$ divided by the
 
 The sensing matrix was created for multiple compression factors by drawing the elements from a Uniform distribution \cite{Rauhut11}. The uniform distribution is a simulation of random attenuation masks placed in front of the lytro camera. The reconstructions were performed for compression factors of $0.02, 0.20, 0.40, 0.60$.
 
-The sparse reconstruction was solved using SPGL1\footnote{\url{http://www.cs.ubc.ca/~mpf/spgl1/}} \cite{BasisPursuit1}\cite{BasisPursuit2}. We used the Basis Pursuit solver for the recovery. $1500$ iterations was sufficient to converge on the solution.
+Reconstruction algorithms were implemented in MATLAB. The Wavelet and Parallel MATLAB toolboxes were employed. The sparse reconstruction was solved using SPGL1\footnote{\url{http://www.cs.ubc.ca/~mpf/spgl1/}} \cite{BasisPursuit1}\cite{BasisPursuit2}, in which we used the Basis Pursuit formulation of the problem to solve the reconstruction. $1500$ iterations was sufficient to converge on the solution. 
 
 The reconstruction was performed using the following orthonormal basis: DCT, Fourier, and Haar Wavelets, and by minimizing the TV cost function. The TV cost function was solved using ADMM, with $\lambda = 0.1$ and $\rho = 10$. \cite{Lecture11Notes}
 
-A graphical representation of our method is shown in Figure 1.
+A graphical representation of our method is shown in Figure 2.
 
 \begin{figure}[t]
 \begin{center}
  \includegraphics[width=0.95\linewidth, trim={0.3cm 0cm 0.2cm 0.3cm} ,clip]{img/cs_framework.png}
 \end{center}
-   \caption{The lightfield image reconstruction pipeline. We take the center $10 \times 10$ angular views from the original lightfield image and resize it by a factor of $6$. Next, we apply random attenuation masks drawn from uniform distribution to get $M$ measurements. Finally, we apply basis pursuit and sparse gradient to reconstruct the lightfield. The original lightfield images were taken from Stanford Lytro lightfield archive. This reconstruction was applied to $24$ images in using the Barley Farmshare cluster. }
+   \caption{The lightfield image reconstruction pipeline. We take the center $10 \times 10$ angular views from the original lightfield image and resize it by a factor of $6$. Next, we apply random attenuation masks drawn from uniform distribution to get $M$ measurements. Finally, we apply basis pursuit and sparse gradient to reconstruct the lightfield. The original lightfield images were taken from Stanford Lytro lightfield archive. This reconstruction was applied to $24$ images in using the Barley machines on the Farmshare cluster. }
 \end{figure}
 
 
@@ -170,7 +178,7 @@ We define the SNR as the energy in the original signal divided by the mean squar
 
 \section{Results}
 
-Figure 2 shows the SNR of the reconstructed lightfield images.  From the figure, we see that the Haar wavelet basis performs poorly when the compression factor is small. The other three methods all reconstruct the image with a high fidelity (average SNR over $20$ dB). For all four methods, the standard deviation of the SNR is around $5$ dB which infers that the quality of the reconstruction largely replies on the scene. The reconstructions using the Fourier basis improves only marginally as the number of samples increases, but there is significant improvement using the DCT basis and TV prior. The improvement of DCT over the Fourier basis may be due to DCT using only real-valued cosine functions, and since we are only reconstructing real signals, the representation in the transform basis is sparser in the case of DCT.
+Figure 3 shows the SNR of the reconstructed lightfield images.  From the figure, we see that the Haar wavelet basis performs poorly when the compression factor is small. The other three methods all reconstruct the image with a high fidelity (average SNR over $20$ dB). For all four methods, the standard deviation of the SNR is around $5$ dB which infers that the quality of the reconstruction is highly dependent on the scene. The reconstructions using the Fourier basis improves only marginally as the number of samples increases, but there is significant improvement using the DCT basis and TV prior. The improvement of DCT over the Fourier basis may be due to DCT using only real-valued cosine functions, and since we are only reconstructing real signals, the representation in the transform basis is sparser in the case of DCT compared to FOurier.
 
 
 \begin{figure}[t]
@@ -180,9 +188,9 @@ Figure 2 shows the SNR of the reconstructed lightfield images.  From the figure,
    \caption{Reconstruction SNR in dB using TV prior and basis pursuit in DCT, Fourier and Haar Wavelets basis plotted for different compression factors. Plotted are the mean and standard deviation of the SNR across the $24$ images.}
 \end{figure}
 
-Figure 3 shows a single angular view of the reconstructed lightfield images for three different lightfield images. Reconstructions using the Haar basis at a compression factor of $0.02$ does not produce a result that approximates the lightfield. The top reconstructed image had the lowest SNR of all images chosen, the middle image had the greatest SNR, and bottom had an average SNR among the $24$ images we analyzed. For the image with the worst SNR, there is an evident increase in detail as the number of samples increases. For the image of the bicycle in the middle which had the best performance in the dataset, the SNR improves significantly, but the improvement in detail is not visible at this resolution. For the case of an average image, the detail does improve as the samples increase.
+Figure 4 shows a single angular view of the reconstructed lightfield images for three different lightfield images. Reconstructions using the Haar basis at a compression factor of $0.02$ does not produce a result that approximates the lightfield. The top reconstructed image had the lowest SNR of all images chosen, the middle image had the greatest SNR, and bottom had an average SNR among the $24$ images we analyzed. For the image with the worst SNR, there is an evident increase in detail as the number of samples increases. For the image of the bicycle in the middle which had the best performance in the dataset, the SNR improves significantly, but the improvement in detail is not visible at this resolution. For the case of an average image, the detail does appear to improve as the samples increase.
 
-Comparing the characteristics of the three images, we observe that reconstruction performs worse in the close-up and non-lambertian scenes than scenes that are lambertian and have a subject that is located further from the camera. This is expected since non-lambertian scenes and scenes where the camera is close to the subject will give more variance when the scene is viewed from a different angle. With respect to compressed sensing, these scenes have less sparsity in the angular domain which makes the assumption on sparsity in angular domain weaker, and the reconstruction less effective. 
+Comparing the characteristics of the three images, we observe that reconstruction performs worse in  close-up and non-lambertian scenes than scenes that are lambertian and have a subject that is located further from the camera. This is expected since non-lambertian scenes and scenes where the camera is close to the subject will give more variance when the scene is viewed from a different angle. With respect to compressed sensing, these scenes have less sparsity in the angular domain which makes the assumption on sparsity in angular domain weaker, and the reconstruction less effective. 
 
 
 \begin{figure}[t]
@@ -193,7 +201,7 @@ Comparing the characteristics of the three images, we observe that reconstructio
 \end{figure}
 
 
-Figure 4 further examines the sparsity of the angular domain by comparing the angular images of a poorly reconstructed scene (left image) and a well reconstructed one (right one). Comparing the reconstructions to the original angular images, the scene on the left is not well represented by few coefficients in the DCT or Fourier basis. The reconstruction algorithm approximates the patch as either a single uniform value, or with sinusoids at different frequencies. The reconstruction using the TV prior is best able to capture the variation not captured by compressed sensing, which can evidently be seen by looking at the third row and fifth column of the left image.
+Figure 5 further examines the sparsity of the angular domain by comparing the angular images of a poorly reconstructed scene (left image) and a well reconstructed one (right one). Comparing the reconstructions to the original angular images, the scene on the left is not well represented by few coefficients in the DCT or Fourier basis. The reconstruction algorithm approximates the patch as either a single uniform value, or with sinusoids at different frequencies. The reconstruction using the TV prior is best able to capture the variation not captured by compressed sensing, which can evidently be seen by looking at the third row and fifth column of the left image.
 
 
 \begin{figure}[t]
