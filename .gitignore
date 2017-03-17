@@ -5,3 +5,8 @@
 farmshare_run/run*
 farmshare_run/fft_*
 *.pdf
+*.backup
+*.log
+*.aux
+*.bbl
+*.blg

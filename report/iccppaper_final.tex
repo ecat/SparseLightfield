@@ -38,7 +38,7 @@ Electrical Engineering Department\\
 
 %%%%%%%%% ABSTRACT
 \begin{abstract}
-
+Lightfield camera images provide not only spatial information but also angular information. This allows us to refocus, capture depth map and create all-in-focus images which are impossible in the post-processing of conventional camera images. There are three main types of lightfield camera: microlens array lightfield camera, sequential capturing lightfield camera and multi-camera array. Due to its compact size and easy calibration, lightfield cameras using microlens arrays are the only method among these three that have been commercialized. However, an inherent trade-off between the spatial and angular resolution resulting in an overall loss of resolution exists in this type of lightfield camera. In this paper, we apply compressive sensing in order to overcome this resolution limitation by assuming sparsity in some basis. We simulate multiple captures using random attenuation masks placed in front of the aperture, and reconstruct the image using basis pursuit in the Fourier, discrete cosine, and Haar wavelets basis, and compare it to reconstructions using a sparse gradient prior. We evaluate the performance of these methods by comparing their SNRs at different compression factors. 
 \end{abstract}
 
 \section{Introduction}
@@ -129,7 +129,7 @@ The sensing matrix was created for multiple compression factors by drawing the e
 
 The sparse reconstruction was solved using SPGL1\footnote{\url{http://www.cs.ubc.ca/~mpf/spgl1/}} \cite{BasisPursuit1}\cite{BasisPursuit2}. We used the Basis Pursuit solver for the recovery. $1500$ iterations was sufficient to converge on the solution.
 
-The reconstruction was performed using the following orthonormal basis: DCT, Fourier, and Haar Wavelets, and by minimizing the TV cost function.
+The reconstruction was performed using the following orthonormal basis: DCT, Fourier, and Haar Wavelets, and by minimizing the TV cost function. The TV cost function was solved using ADMM, with $\lambda = 0.1$ and $\rho = 10$. \cite{Lecture11Notes}
 
 
 Reconstructions were performed in parallel for different compression ratios and basis using the Barley machines on the Stanford Farmshare cluster. Each Barley machine is equipped with an AMD Magny Cours (24 cores each) and is shared across multiple users. The approximate time for reconstructing a $90 \times 63 \times 10 \times 10$ lightfield using a particular reconstruction method is shown in Table 1.
@@ -163,7 +163,7 @@ We define the SNR as the energy in the original signal divided by the mean squar
 \begin{center}
  \includegraphics[width=0.95\linewidth, trim={0.5cm 0cm 1cm 1.2cm} ,clip]{img/patches.png}
 \end{center}
-   \caption{}
+   \caption{Comparison of sparsity in angular direction of two images. The left one ( fence image) is an example whose angular images are not very sparse. The right image (cherry blossom image ) is an example whose angular images are sparse. For each image, from bottom to top, the patches in each line represent the original angular image and guesses made by different reconstruction method.}
 \end{figure}
 
 
@@ -171,7 +171,7 @@ We define the SNR as the energy in the original signal divided by the mean squar
 \begin{center}
  \includegraphics[width=0.95\linewidth, trim={0.3cm 0cm 0.2cm 0.3cm} ,clip]{img/cs_framework.png}
 \end{center}
-   \caption{}
+   \caption{The lightfield image reconstruction pipeline. (We take the center $10 \times 10$ angular views from the original lightfield image and resize it by a factor of $6$. Next, we apply random attenuation masks drawn from uniform distribution to get $M$ measurements. Finally, we apply basis pursuit and sparse gradient to reconstruct the lightfield. The original lightfield images were taken from Stanford Lytro lightfield archive. This reconstruction was applied to $24$ images in parallel in Barley.) }
 \end{figure}
 
 
@@ -179,7 +179,7 @@ We define the SNR as the energy in the original signal divided by the mean squar
 \begin{center}
  \includegraphics[width=0.95\linewidth, trim={1cm 1cm 1cm 1cm} ,clip]{img/snr_average.png}
 \end{center}
-   \caption{}
+   \caption{Reconstruction SNR using TV prior and basis pursuit in DCT, FFT and Haar Wavelets. }
 \end{figure}
 
 
@@ -187,7 +187,7 @@ We define the SNR as the energy in the original signal divided by the mean squar
 \begin{center}
  \includegraphics[width=0.95\linewidth]{img/example_images.png}
 \end{center}
-   \caption{}
+   \caption{Comparison of reconstruction of three different scenes. From top to bottom are the reconstructed scenes with lowest SNR, highest SNR and a medium SNR. For each scene, we compare the images reconstructed  in 4 methods.  The SNR value is listed on top of the image. From let to right is the image with compression factor of $0.02$, $0.2$, $0.4$, $0.6$.}
 \end{figure}
 
 \section{Discussion}
