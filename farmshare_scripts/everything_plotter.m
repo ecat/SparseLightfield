@@ -2,8 +2,8 @@
 clear all; close all;
 
 %% load data
-experiments = {'dct_actual_run', 'fft_actual_run', 'tv_actual_lambda_0point1'};
-legend_titles = {'DCT', 'FFT', 'TV \lambda = 0.1'};
+experiments = {'dct_actual_run', 'fft_actual_run', 'tv_actual_lambda_0point1', 'haar_actual_run'};
+legend_titles = {'DCT', 'Fourier', 'TV \lambda = 0.1', 'Haar'};
 % create structo to hold all results
 all_results = containers.Map();
 
@@ -81,10 +81,13 @@ for k = 1:numel(experiments)
     SNR_stdev = sqrt(var(case_to_plot.SNR_array));
     x_values = case_to_plot.percent_num_measurements;
 
-    errorbar(x_values, SNR_averages, SNR_stdev);
+    h = errorbar(x_values(1:4), SNR_averages(1:4), SNR_stdev(1:4), 'LineWidth', 2);
+    
     hold on;
-    title('SNR Average')
-    ylim([0 40])
+    title('Reconstruction SNR for Different Basis')
+    xlabel('Compression Factor')
+    ylabel('SNR')
+    ylim([-10 40])
     grid on;
 end
 
@@ -138,7 +141,8 @@ for mm = 1:numel(image_indices)
 
     lightFieldImage = LightFieldImage(parameters);
     
-    figure;
+    my_fig = figure('Color', [153/255 204/255 255/255]) ;
+    my_fig.InvertHardcopy = 'off';
     run_index = image_index - 1;
 
     for basis_index = 1:numel(experiments) + 1
@@ -170,4 +174,7 @@ for mm = 1:numel(image_indices)
 
         end
     end
+    
+    
+    saveas(my_fig, ['figures/' num2str(mm) 'lightfield.png'])
 end

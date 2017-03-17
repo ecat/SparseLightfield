@@ -8,3 +8,13 @@ To run on corn server, use
 > python farmshare_scripts/driver.py
 
 from the project home directory
+
+
+To reconstruct an image, run main.m. A sample lightfield is included in the code. For the reconstruction to finish in less than 
+2 minutes, the angularViewResizeFactor in lightfieldReconstruction.m should be larger than 30.
+
+
+To change the reconstruction basis, the reconBasis in lightfieldReconstruction.m should be changed. Note that HaarWavelets requires that the Matlab Wavelets toolbox be installed.
+
+The number of measurements can also be changed to vary the compression factor. Any number between 2-100 is acceptable.
+

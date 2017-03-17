@@ -17,8 +17,8 @@ for n in range(0, num_images):
 	filename = image_url.split('/')[-1].rstrip() # get filename from url
 
 	# command to download image and place into run folder
-	curl_command = 'curl %s > farmshare_run/dct_actual_run/run%d/%s' % (image_url, n, filename)
-	delete_command = 'rm farmshare_run/dct_actual_run/run%d/%s' %(n, filename)
+	curl_command = 'curl %s > farmshare_run/haar_actual_run/run%d/%s' % (image_url, n, filename)
+	delete_command = 'rm farmshare_run/haar_actual_run/run%d/%s' %(n, filename)
 
 	# generate matlab script to download lightfield, call reconstruction function, delete lightfield
 	matlabstartup = '''
@@ -42,7 +42,7 @@ system('%s')
 
 %% perform reconstruction
 display('Doing reconstruction')
-[originalLF reconstructionResults] = lightfield_reconstruction('farmshare_run/dct_actual_run/run%d/%s');
+[originalLF reconstructionResults] = lightfield_reconstruction('farmshare_run/haar_actual_run/run%d/%s');
 
 %% delete lightfield image to preserve disk space
 display('Deleting lightfield image')
@@ -51,34 +51,34 @@ system('%s')
 display('done running parfor')
 
 %% print results to a file
-save('farmshare_run/dct_actual_run/run%d/reconstructionResults.mat', 'reconstructionResults')
+save('farmshare_run/haar_actual_run/run%d/reconstructionResults.mat', 'reconstructionResults')
 
 delete(poolobj)
 
 	'''% (curl_command, n, filename, delete_command, n)
 
 	# create run folder
-	os.mkdir('farmshare_run/dct_actual_run/run%d' % n)
+	os.mkdir('farmshare_run/haar_actual_run/run%d' % n)
 
-        runfile = open('farmshare_run/dct_actual_run/run%d/run.m' % n, 'w')
+        runfile = open('farmshare_run/haar_actual_run/run%d/run.m' % n, 'w')
         runfile.write(matlabstartup)
         runfile.close()
 	
 	qsubscript = '''#!/bin/bash
 
 #$ -N %s
-#$ -o farmshare_run/dct_actual_run/run%d/job.out
-#$ -e farmshare_run/dct_actual_run/run%d/job.error
+#$ -o farmshare_run/haar_actual_run/run%d/job.out
+#$ -e farmshare_run/haar_actual_run/run%d/job.error
 #$ -cwd
 #$ -S /bin/bash
 #$ -pe shm 4
 
 module load matlab
-matlab -nodesktop < farmshare_run/dct_actual_run/run%d/run.m
+matlab -nodesktop < farmshare_run/haar_actual_run/run%d/run.m
 	''' % (filename.split('.')[0], n,n,n)
 
-        qsubfile = open('farmshare_run/dct_actual_run/run%d/run.submit' % n, 'w')
+        qsubfile = open('farmshare_run/haar_actual_run/run%d/run.submit' % n, 'w')
         qsubfile.write(qsubscript)
         qsubfile.close()
 
-        os.system('qsub -l h_rt=36:00:00 farmshare_run/dct_actual_run/run%d/run.submit' % n)
+        os.system('qsub -l h_rt=36:00:00 farmshare_run/haar_actual_run/run%d/run.submit' % n)
