@@ -113,7 +113,7 @@ To solve the BP problem, it is convenient to let the matrix $A = \Psi\Phi$. We c
 
 The above formulation can also be recast using the framework presented in \cite{GordonArticle2}, but this is not presented in this work.
 
-Figure 1 is a digaram of the physical implementation of our experiment, showing lightfield capture with a microlens array compared to a random attenuation mask in front of the main lens. Different attenuation masks would be used to capture multiple random projections.
+Figure 1 is a diagram of a possible physical implementation of our experiment, comparing lightfield capture with a microlens array and lightfield capture using random projections with an attenuation mask in front of the main lens. In practice, multiple attenuation masks would be used.
 
 \begin{figure}[t]
 \begin{center}
@@ -130,6 +130,8 @@ Unlike compressed sensing which assumes sparsity in some orthogonal basis, Total
 
 Where $D$ is the gradient operator and $\lambda$ is a parameter that can be chosen. A larger choice of $\lambda$ will reduce the amount of edges in the image. $A$ is similar to the sensing matrix presented above and constitutes the masks used to generate the measurements $b$.
 
+In our experiments, we assume that the gradients are sparse in the angular dimensions, and we apply the gradients in the $u$, $v$ dimension as we did in the previous section.
+
 \section{Methods}
 
 24 images were chosen at random from the Stanford Lytro Light Field Archive \footnote{Available: \url{lightfields.stanford.edu}}. Images captured using the Lytro Illum camera have a raw resolution of $7574 \times 5264$ pixels, and has $14 \times 14$ angular views over the RGB colour channels. Each angular view has a resolution of $541 \times 376$. Our simulations reduced the resolution of each angular view by a factor of $6$ using bilinear interpolation in order to reduce reconstruction time. Only the center $10 \times 10$ angular views of each image were considered for the simulation as the microlens array in the Lytro camera causes pixels at the edge to be obscured. As reported in \cite{mainP1}, we observed a higher SNR as the number of center views was decreased, due to the decrease in self-similarity as the point of view moves further from the center of the scene.
@@ -141,7 +143,7 @@ The sensing matrix was created for multiple compression factors by drawing the e
 
 Reconstruction algorithms were implemented in MATLAB. The Wavelet and Parallel MATLAB toolboxes were employed. The sparse reconstruction was solved using SPGL1\footnote{\url{http://www.cs.ubc.ca/~mpf/spgl1/}} \cite{BasisPursuit1}\cite{BasisPursuit2}, in which we used the Basis Pursuit formulation of the problem to solve the reconstruction. $1500$ iterations was sufficient to converge on the solution. 
 
-The reconstruction was performed using the following orthonormal basis: DCT, Fourier, and Haar Wavelets, and by minimizing the TV cost function. The TV cost function was solved using ADMM, with $\lambda = 0.1$ and $\rho = 10$. \cite{Lecture11Notes}
+The reconstruction was performed using the following orthonormal basis: DCT, Fourier, and Haar Wavelets, and by minimizing the TV cost function. Optimization with the TV prior was solved using ADMM, with $\lambda = 0.1$ and $\rho = 10$. \cite{Lecture11Notes}
 
 A graphical representation of our method is shown in Figure 2.
 
@@ -178,7 +180,7 @@ We define the SNR as the energy in the original signal divided by the mean squar
 
 \section{Results}
 
-Figure 3 shows the SNR of the reconstructed lightfield images.  From the figure, we see that the Haar wavelet basis performs poorly when the compression factor is small. The other three methods all reconstruct the image with a high fidelity (average SNR over $20$ dB). For all four methods, the standard deviation of the SNR is around $5$ dB which infers that the quality of the reconstruction is highly dependent on the scene. The reconstructions using the Fourier basis improves only marginally as the number of samples increases, but there is significant improvement using the DCT basis and TV prior. The improvement of DCT over the Fourier basis may be due to DCT using only real-valued cosine functions, and since we are only reconstructing real signals, the representation in the transform basis is sparser in the case of DCT compared to FOurier.
+Figure 3 shows the SNR of the reconstructed lightfield images.  From the figure, we see that the Haar wavelet basis performs poorly when the compression factor is small. The other three methods all reconstruct the image with a high fidelity (average SNR over $20$ dB). For all four methods, the standard deviation of the SNR is around $5$ dB which infers that the quality of the reconstruction is highly dependent on the scene. The reconstructions using the Fourier basis improves only marginally as the number of samples increases, but there is significant improvement using the DCT basis and TV prior. The improvement of DCT over the Fourier basis may be due to DCT using only real-valued cosine functions, and since we are only reconstructing real signals, the representation in the transform basis is sparser in the case of DCT compared to Fourier.
 
 
 \begin{figure}[t]
@@ -215,7 +217,7 @@ Figure 5 further examines the sparsity of the angular domain by comparing the an
 
 \section{Conclusion}
 
-From the above results, we discovered that sparse gradient method gives us the overall most effective reconstruction in terms of image fidelity and computation time. In contrast, reconstructions using basis pursuit in the Haar wavelet basis performs the worst in terms of both computation time and image fidelity when the compression factor is small. The quality of the reconstruction is also highly dependent on the scene. For scenes where the lightfield is sparse in the angular dimension, the reconstruction works much better than those with little sparsity. This reconstruction can be best applied to scenes lambertian scenes at a distance from our observation. However, the overall computation time required for these reconstructions is prohibitive for consumer applications, and significant progress would have to be made in this regard. 
+From the above results, we discovered that sparse gradient method gives us the overall most effective reconstruction in terms of image fidelity and computation time. In contrast, reconstructions using basis pursuit in the Haar wavelet basis performs the worst in terms of both computation time and image fidelity when the compression factor is small. The quality of the reconstruction is also highly dependent on the scene. For scenes where the lightfield is sparse in the angular dimension, the reconstruction works much better than those with little sparsity. This reconstruction can be best applied to lambertian scenes at a distance from our observation. However, the overall computation time required for these reconstructions is prohibitive for consumer applications, and significant progress would have to be made in this regard. 
 
 {\small
 \bibliographystyle{ieee}
