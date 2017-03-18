@@ -12,7 +12,9 @@ from the project home directory
 INSTRUCTIONS FOR GRADER
 ========================
 
-To reconstruct an image, run main.m. A sample lightfield called 'flowers_plants_1_eslf.png' is included in the package. 
+To reconstruct an image, run main.m. The lightfield images are too large to be loaded to GitHub, so a lightfield must be downloaded directly from the archive and placed in the root folder. This can be achieved by running the following command in the root folder of the project:
+
+>> curl http://lightfields.stanford.edu/images/flowers_plants/raw/flowers_plants_1_eslf.png > flowers_plants_1_eslf.png
 
 Other lightfield images can be reconstructed by downloading them from lightfields.stanford.edu and placing them into the same directory as the main.m script. The filename provided to the function lightfield_reconstruction will also have to be changed.
 
